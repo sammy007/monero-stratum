@@ -1,0 +1,71 @@
+{
+    "address": "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em",
+
+    "threads": 2,
+    "coin": "monero",
+
+    "stratum": {
+        "timeout": "15m",
+        "blockRefreshInterval": "1s",
+
+        "listen": [
+            {
+                "host": "0.0.0.0",
+                "port": 1111,
+                "diff": 8000,
+                "maxConn": 32768
+            },
+            {
+                "host": "0.0.0.0",
+                "port": 3333,
+                "diff": 16000,
+                "maxConn": 32768
+            },
+            {
+                "host": "0.0.0.0",
+                "port": 5555,
+                "diff": 16000,
+                "maxConn": 32768
+            }
+        ]
+    },
+
+    "daemon": {
+        "host": "node.moneroclub.com",
+        "port": 8880,
+        "timeout": "1s"
+    },
+
+    "redis": {
+        "endpoint": "127.0.0.1:6379",
+        "poolSize": 8,
+        "database": 0
+    },
+
+    "policy": {
+        "workers": 8,
+        "resetInterval": "60m",
+        "refreshInterval": "1m",
+
+        "banning": {
+            "enabled": true,
+            "ipset": "blacklist",
+            "timeout": 1800,
+            "invalidPercent": 30,
+            "checkThreshold": 30,
+            "malformedLimit": 5
+        },
+
+        "limits": {
+            "enabled": false,
+            "limit": 30,
+            "grace": "5m",
+            "limitJump": 10
+        }
+    },
+
+    "newrelicEnabled": false,
+    "newrelicName": "MyStratum",
+    "newrelicKey": "SECRET_KEY",
+    "newrelicVerbose": false
+}
