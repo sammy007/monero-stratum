@@ -92,6 +92,9 @@ func (s *StratumServer) Listen() {
 
 	for {
 		conn, err := server.AcceptTCP()
+		if err != nil {
+			continue
+		}
 		conn.SetKeepAlive(true)
 		checkError(err)
 		ip, _, _ := net.SplitHostPort(conn.RemoteAddr().String())
