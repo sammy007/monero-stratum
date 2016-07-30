@@ -5,9 +5,6 @@
 
 using namespace cryptonote;
 
-// Well, it's dirty and useless, but without it I can't link to bitmonero's /build/release/src/**/*.a libs
-unsigned int epee::g_test_dbg_lock_sleep = 0;
-
 extern "C" uint32_t cn_convert_blob(const char *blob, size_t len, char *out) {
     std::string input = std::string(blob, len);
     std::string output = "";
