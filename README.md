@@ -47,14 +47,14 @@ In order to successfully link with bitmonero libs, recompile bitmonero with:
 
     CXXFLAGS="-fPIC" CFLAGS="-fPIC" make release
 
-Build stratum:
+Build CGO extensions:
 
     MONERO_DIR=/opt/src/bitmonero cmake .
     make
 
-Run it:
+Build stratum:
 
-    LD_LIBRARY_PATH="/usr/local/lib/" GOPATH=/path/to/go go run main.go
+    GOPATH=/path/to/go go build -o pool main.go
 
 More info on *GOPATH* you can find in a [wiki](https://github.com/golang/go/wiki/GOPATH).
 
