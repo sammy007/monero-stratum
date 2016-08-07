@@ -60,7 +60,7 @@ func TestWriteBlockAtSameHeight(t *testing.T) {
 }
 
 func stripTimestampFromZ(z redis.Z) redis.Z {
-	k := strings.Split(z.Member, ":")
+	k := strings.Split(z.Member.(string), ":")
 	res := []string{k[0], "*", k[2], k[3]}
 	return redis.Z{Score: z.Score, Member: strings.Join(res, ":")}
 }
