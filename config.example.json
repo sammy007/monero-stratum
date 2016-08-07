@@ -33,7 +33,7 @@
     "daemon": {
         "host": "node.moneroclub.com",
         "port": 8880,
-        "timeout": "1s"
+        "timeout": "10s"
     },
 
     "newrelicEnabled": false,
