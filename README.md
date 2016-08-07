@@ -36,7 +36,7 @@ Notice that for share validation stratum requires bitmonero source tree where .a
 
 #### Linux
 
-Installation on linux is similar to OS X installation and currently the only dfference is that you should copy *.so* libs from *hashing* and *cnutil* directories to */usr/local/lib* or similar dir in order to make CGO happy. I would recommend you to use Ubuntu 14.04 LTS.
+I would recommend you to use Ubuntu 16.04 LTS.
 
 In order to successfully link with bitmonero libs, recompile bitmonero with:
 
