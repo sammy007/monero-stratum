@@ -101,7 +101,7 @@ func (s *StratumServer) handleUnknownRPC(cs *Session, req *JSONRpcReq) *ErrorRep
 
 func (s *StratumServer) broadcastNewJobs() {
 	log.Printf("Broadcasting new jobs to %v miners", s.miners.Count())
-	bcast := make(chan int, 1024)
+	bcast := make(chan int, 1024*16)
 	n := 0
 
 	for m := range s.miners.IterBuffered() {
