@@ -126,7 +126,6 @@ func (m *Miner) processShare(s *StratumServer, job *Job, t *BlockTemplate, nonce
 			log.Printf("Block submission failure at height %v: %v", t.Height, err)
 		} else {
 			blockFastHash := hex.EncodeToString(hashing.FastHash(convertedBlob))
-			s.storage.WriteBlock(m.Login, job.Difficulty, t.Difficulty, t.Height, blockFastHash)
 			// Immediately refresh current BT and send new jobs
 			s.refreshBlockTemplate(true)
 			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.Height, m.Login, m.IP)
@@ -134,8 +133,6 @@ func (m *Miner) processShare(s *StratumServer, job *Job, t *BlockTemplate, nonce
 	} else if hashDiff < job.Difficulty {
 		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.Login, m.IP)
 		return false
-	} else {
-		s.storage.WriteShare(m.Login, job.Difficulty)
 	}
 
 	log.Printf("Valid share at difficulty %v/%v", s.port.Difficulty, hashDiff)

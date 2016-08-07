@@ -37,34 +37,6 @@
         "timeout": "1s"
     },
 
-    "redis": {
-        "endpoint": "127.0.0.1:6379",
-        "poolSize": 8,
-        "database": 0
-    },
-
-    "policy": {
-        "workers": 8,
-        "resetInterval": "60m",
-        "refreshInterval": "1m",
-
-        "banning": {
-            "enabled": true,
-            "ipset": "blacklist",
-            "timeout": 1800,
-            "invalidPercent": 30,
-            "checkThreshold": 30,
-            "malformedLimit": 5
-        },
-
-        "limits": {
-            "enabled": false,
-            "limit": 30,
-            "grace": "5m",
-            "limitJump": 10
-        }
-    },
-
     "newrelicEnabled": false,
     "newrelicName": "MyStratum",
     "newrelicKey": "SECRET_KEY",

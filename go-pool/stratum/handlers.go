@@ -20,11 +20,6 @@ func (s *StratumServer) handleLoginRPC(cs *Session, params *LoginParams) (reply 
 		return
 	}
 
-	if !s.policy.ApplyLoginPolicy(params.Login, cs.ip) {
-		errorReply = &ErrorReply{Code: -1, Message: "Your address blacklisted", Close: true}
-		return
-	}
-
 	miner := NewMiner(params.Login, params.Pass, s.port.Difficulty, cs.ip)
 	miner.Session = cs
 	s.registerMiner(miner)
@@ -83,8 +78,6 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, params *SubmitParams) (repl
 	}
 
 	validShare := miner.processShare(s, job, t, nonce, params.Result)
-	ok = s.policy.ApplySharePolicy(miner.IP, validShare)
-
 	if !validShare {
 		errorReply = &ErrorReply{Code: -1, Message: "Low difficulty share", Close: !ok}
 		return

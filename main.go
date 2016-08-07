@@ -10,9 +10,7 @@ import (
 	"time"
 
 	"./go-pool/pool"
-	"./go-pool/storage"
 	"./go-pool/stratum"
-	"./go-pool/stratum/policy"
 
 	"github.com/yvasiyarov/gorelic"
 )
@@ -29,13 +27,9 @@ func startStratum() {
 		log.Printf("Running with default %v threads", n)
 	}
 
-	storage := storage.NewRedisClient(&cfg.Redis, cfg.Coin)
-	storage.Check()
-	policy := policy.Start(&cfg, storage)
-
 	quit := make(chan bool)
 	for _, port := range cfg.Stratum.Ports {
-		s := stratum.NewStratum(&cfg, port, storage, policy)
+		s := stratum.NewStratum(&cfg, port)
 
 		go func() {
 			s.Listen()

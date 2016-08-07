@@ -15,8 +15,6 @@ import (
 
 	"../pool"
 	"../rpc"
-	"../storage"
-	"./policy"
 )
 
 type StratumServer struct {
@@ -28,8 +26,6 @@ type StratumServer struct {
 	rpc            *rpc.RPCClient
 	timeout        time.Duration
 	broadcastTimer *time.Timer
-	storage        *storage.RedisClient
-	policy         *policy.PolicyServer
 }
 
 type Session struct {
@@ -43,17 +39,16 @@ const (
 	MaxReqSize = 10 * 1024
 )
 
-func NewStratum(cfg *pool.Config, port pool.Port, storage *storage.RedisClient, policy *policy.PolicyServer) *StratumServer {
+func NewStratum(cfg *pool.Config, port pool.Port) *StratumServer {
 	b := make([]byte, 4)
 	_, err := rand.Read(b)
 	if err != nil {
 		log.Fatalf("Can't seed with random bytes: %v", err)
 	}
 
-	stratum := &StratumServer{config: cfg, port: port, policy: policy, instanceId: b}
+	stratum := &StratumServer{config: cfg, port: port, instanceId: b}
 	stratum.rpc = rpc.NewRPCClient(cfg)
 	stratum.miners = NewMinersMap()
-	stratum.storage = storage
 
 	timeout, _ := time.ParseDuration(cfg.Stratum.Timeout)
 	stratum.timeout = timeout
@@ -97,11 +92,6 @@ func (s *StratumServer) Listen() {
 		}
 		conn.SetKeepAlive(true)
 		ip, _, _ := net.SplitHostPort(conn.RemoteAddr().String())
-		ok := s.policy.ApplyLimitPolicy(ip)
-		if !ok {
-			conn.Close()
-			continue
-		}
 		n += 1
 
 		accept <- n
@@ -141,7 +131,6 @@ func (s *StratumServer) handleClient(conn *net.TCPConn, ip string) error {
 			var req JSONRpcReq
 			err = json.Unmarshal(data, &req)
 			if err != nil {
-				s.policy.ApplyMalformedPolicy(ip)
 				log.Printf("Malformed request: %v", err)
 				return err
 			}
