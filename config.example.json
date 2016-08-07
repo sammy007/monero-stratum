@@ -3,7 +3,6 @@
     "bypassAddressValidation": false,
 
     "threads": 2,
-    "coin": "monero",
 
     "stratum": {
         "timeout": "15m",

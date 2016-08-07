@@ -6,8 +6,7 @@ type Config struct {
 	Stratum                 Stratum `json:"stratum"`
 	Daemon                  Daemon  `json:"daemon"`
 
-	Threads int    `json:"threads"`
-	Coin    string `json:"coin"`
+	Threads int `json:"threads"`
 
 	NewrelicName    string `json:"newrelicName"`
 	NewrelicKey     string `json:"newrelicKey"`
