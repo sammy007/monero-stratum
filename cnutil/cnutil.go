@@ -1,7 +1,7 @@
 package cnutil
 
 // #cgo CFLAGS: -std=c11 -D_GNU_SOURCE
-// #cgo LDFLAGS: -L. -lcnutil -lcnutilxx -lstdc++
+// #cgo LDFLAGS: -L${SRCDIR} -lcnutil -lcnutilxx -lstdc++
 // #include "cnutil.h"
 import "C"
 import "unsafe"

@@ -1,7 +1,7 @@
 package hashing
 
 // #cgo CFLAGS: -std=c11 -D_GNU_SOURCE
-// #cgo LDFLAGS: -L. -lhashing -lstdc++
+// #cgo LDFLAGS: -L${SRCDIR} -lhashing -lstdc++
 // #include <stdlib.h>
 // #include <stdint.h>
 // #include "src/hashing.h"
