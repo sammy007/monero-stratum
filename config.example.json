@@ -1,5 +1,6 @@
 {
     "address": "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em",
+    "bypassAddressValidation": false,
 
     "threads": 2,
     "coin": "monero",

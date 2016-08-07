@@ -1,10 +1,11 @@
 package pool
 
 type Config struct {
-	Address string  `json:"address"`
-	Stratum Stratum `json:"stratum"`
-	Daemon  Daemon  `json:"daemon"`
-	Redis   Redis   `json:"redis"`
+	Address                 string  `json:"address"`
+	BypassAddressValidation bool    `json:"bypassAddressValidation"`
+	Stratum                 Stratum `json:"stratum"`
+	Daemon                  Daemon  `json:"daemon"`
+	Redis                   Redis   `json:"redis"`
 
 	Threads int    `json:"threads"`
 	Coin    string `json:"coin"`
