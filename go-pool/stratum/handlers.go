@@ -107,6 +107,8 @@ func (s *StratumServer) broadcastNewJobs() {
 			if err != nil {
 				log.Printf("Job transmit error to %v@%v: %v", miner.Login, miner.IP, err)
 				s.removeMiner(miner.Id)
+			} else {
+				s.setDeadline(miner.Session.conn)
 			}
 		}(m.Val)
 	}
