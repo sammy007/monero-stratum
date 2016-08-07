@@ -4,7 +4,7 @@ High performance CryptoNote mining stratum written in Golang.
 
 **Stratum feature list:**
 
-* Concurrent shares processing, each connection is handled in a lightweight thread of execution
+* Concurrent shares processing
 * AES-NI enabled share validation code with fallback to slow implementation provided by linking with [**Monero**](https://github.com/monero-project/bitmonero) libraries
 * Integrated NewRelic performance monitoring plugin
 
@@ -51,11 +51,58 @@ Build stratum:
 
     GOPATH=/path/to/go go build -o pool main.go
 
+Run:
+
+    ./pool config.json
+
 More info on *GOPATH* you can find in a [wiki](https://github.com/golang/go/wiki/GOPATH).
 
 ### Configuration
 
-Configuration is self-describing, just copy *config.example.json* to *config.json* and run stratum with path to config file as 1st argument. There is default XMR address of monero core team in config example and open monero rpc node from [moneroclub.com](https://www.moneroclub.com/node).
+Configuration is self-describing, just copy *config.example.json* to *config.json* and run stratum with path to config file as 1st argument. There is default XMR address of monero core team in config example and open monero rpc node from [moneroclub.com](https://www.moneroclub.com/node). Sure, you must run your own full node.
+
+```javascript
+{
+    // Address to where mined blocks will rain
+    "address": "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em",
+    // Don't validate login, useful for other CN coins
+    "bypassAddressValidation": false,
+
+    "threads": 2,
+
+    // Mining endpoints
+    "stratum": {
+        // TCP timeout for miner, better keep default
+        "timeout": "15m",
+        // Interval to poll monero node for new jobs
+        "blockRefreshInterval": "1s",
+
+        "listen": [
+            {
+                "host": "0.0.0.0",
+                "port": 1111,
+                // Stratum port static difficulty
+                "diff": 5000,
+                "maxConn": 32768
+            },
+            {
+                "host": "0.0.0.0",
+                "port": 3333,
+                "diff": 10000,
+                "maxConn": 32768
+            }
+        ]
+    },
+
+    // Monero daemon connection options
+    "daemon": {
+        "host": "127.0.0.1",
+        // Monero RPC port, default is 18081
+        "port": 18081,
+        "timeout": "10s"
+    }
+}
+```
 
 ### Private Pool Guidelines
 
@@ -63,9 +110,7 @@ For personal private pool you can use [DigitalOcean](https://www.digitalocean.co
 
 ### TODO
 
-Still in early stage, despite that I am using it for private setups, stratum requires a lot of stability tests. Please run it with <code>-race</code> flag with <code>GORACE="log_path=/path/to/race.log"</code> in private setup and send contents of this file to me if you are "lucky" and found race. It will make stratum ~20x slower, but it does not hit performance if you are soloing with a dozen of GPUs. Look at *-debug.fish* script for example.
-
-Cool stuff will be added after excessive testing, I always have ideas for improvement and new features.
+In-RAM stats with a simple self hosted frontend.
 
 ### Donations
 
