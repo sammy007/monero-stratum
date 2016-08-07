@@ -96,7 +96,6 @@ func (s *StratumServer) Listen() {
 			continue
 		}
 		conn.SetKeepAlive(true)
-		checkError(err)
 		ip, _, _ := net.SplitHostPort(conn.RemoteAddr().String())
 		ok := s.policy.ApplyLimitPolicy(ip)
 		if !ok {
