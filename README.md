@@ -1,14 +1,10 @@
 # go-cryptonote-pool
 
-High performance CryptoNote mining stratum written in Golang backed by Redis.
+High performance CryptoNote mining stratum written in Golang.
 
 **Stratum feature list:**
 
-* Full [node-cryptonote-pool](https://github.com/zone117x/node-cryptonote-pool) database compatibility
 * Concurrent shares processing, each connection is handled in a lightweight thread of execution
-* Several configurable stratum policies to prevent basic attacks
-* Banning policy using [**ipset**s](http://ipset.netfilter.org/) on Linux for high performance banning
-* Whitelist for trusted miners and blacklist for unwelcome guests
 * AES-NI enabled share validation code with fallback to slow implementation provided by linking with [**Monero**](https://github.com/monero-project/bitmonero) libraries
 * Integrated NewRelic performance monitoring plugin
 
@@ -21,7 +17,6 @@ Dependencies:
 
 Install required packages:
 
-    go get gopkg.in/redis.v3
     go get github.com/yvasiyarov/gorelic
 
 #### Mac OS X
@@ -61,26 +56,6 @@ More info on *GOPATH* you can find in a [wiki](https://github.com/golang/go/wiki
 ### Configuration
 
 Configuration is self-describing, just copy *config.example.json* to *config.json* and run stratum with path to config file as 1st argument. There is default XMR address of monero core team in config example and open monero rpc node from [moneroclub.com](https://www.moneroclub.com/node).
-
-#### Redis
-
-Leave Redis password blank if you have local setup in a trusted environment. Don't rely on Redis password, it's easily bruteforceable. Password option is only for some clouds. There is a connection pool, use some reasonable value. Remember, that each valid share submission will lease one connection from a pool due to <code>multi</code> exec and instantly release it, this is how go-redis works.
-
-#### Policies
-
-Stratum policy server collecting several stats on per IP basis.
-
-Banning enabled by default. Specify <code>ipset</code> name for banning. Timeout argument will be passed to this ipset. For ipset usage refer to [this article](https://wiki.archlinux.org/index.php/Ipset). Stratum will use os/exec command like <code>sudo ipset ...</code> for banning, so you have to configure sudo properly and make sure that your system will never ask for password:
-
-*/etc/sudoers.d/stratum*
-
-    stratum ALL=NOPASSWD: /sbin/ipset
-
-Use limits to prevent connection flood to your stratum, there is initial <code>limit</code> and <code>limitJump</code>. Policy server will increase number of allowed connections on each valid share submission. Stratum will bypass this policy regarding <code>grace</code> time specified on start.
-
-#### Payouts and Block Unlocking
-
-This is just stratum yet. Use corresponding [node-cryptonote-pool](https://github.com/zone117x/node-cryptonote-pool) modules for block unlocking and payout processing. Database is 100% compatible.
 
 ### Private Pool Guidelines
 
