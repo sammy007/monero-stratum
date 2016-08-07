@@ -15,11 +15,13 @@ Dependencies:
   * go-1.6
   * Everything required to build bitmonero
 
+#### Mac OS X
+
 Install required packages:
 
+    brew update && brew install go
+    export GOPATH=~/go
     go get github.com/yvasiyarov/gorelic
-
-#### Mac OS X
 
 Download and compile [Monero](https://github.com/monero-project/bitmonero) daemon.
 
@@ -29,14 +31,24 @@ Now clone stratum repo and compile it:
     cmake .
     make
 
-Notice that for share validation stratum requires bitmonero source tree where .a libs already compiled. By default stratum will use <code>../bitmonero</code> directory. You can override this behaviour by passing <code>MONERO_DIR</code> env variable:
+Notice that for share validation stratum requires bitmonero source tree where .a libs already compiled. By default stratum will use <code>../bitmonero</code> directory. You can override this behavior by passing <code>MONERO_DIR</code> env variable:
 
     MONERO_DIR=/path/to/bitmonero cmake .
     make
 
+Build stratum:
+
+    go build -o pool main.go
+
 #### Linux
 
 I would recommend you to use Ubuntu 16.04 LTS.
+
+Install required packages:
+
+    sudo apt-get install golang
+    export GOPATH=~/go
+    go get github.com/yvasiyarov/gorelic
 
 In order to successfully link with bitmonero libs, recompile bitmonero with:
 
@@ -49,13 +61,11 @@ Build CGO extensions:
 
 Build stratum:
 
-    GOPATH=/path/to/go go build -o pool main.go
+    go build -o pool main.go
 
-Run:
+#### Running Stratum
 
     ./pool config.json
-
-More info on *GOPATH* you can find in a [wiki](https://github.com/golang/go/wiki/GOPATH).
 
 ### Configuration
 
