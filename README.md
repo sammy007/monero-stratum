@@ -16,9 +16,8 @@ High performance CryptoNote mining stratum written in Golang backed by Redis.
 
 Dependencies:
 
-  * go-1.4
-  * boost-1.55+
-  * cmake
+  * go-1.6
+  * Everything required to build bitmonero
 
 Install required packages:
 
