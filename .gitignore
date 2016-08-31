@@ -16,3 +16,4 @@ Makefile
 # Configs
 config.json
 aeon.json
+pool
