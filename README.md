@@ -14,7 +14,7 @@ Dependencies:
 
   * go-1.6
   * Everything required to build monero
-  * Monero *v0.9.4* (only to link hashing code with it)
+  * Monero *v0.10.0*
 
 #### Mac OS X
 
@@ -53,6 +53,7 @@ Install required packages:
 
 In order to successfully link with monero libs, recompile monero with:
 
+    cmake .
     CXXFLAGS="-fPIC" CFLAGS="-fPIC" make
 
 Build CGO extensions:
@@ -70,7 +71,7 @@ Build stratum:
 
 ### Configuration
 
-Configuration is self-describing, just copy *config.example.json* to *config.json* and run stratum with path to config file as 1st argument. There is default XMR address of monero core team in config example and open monero rpc node from [moneroclub.com](https://www.moneroclub.com/node). Sure, you must run your own full node.
+Configuration is self-describing, just copy *config.example.json* to *config.json* and run stratum with path to config file as 1st argument.
 
 ```javascript
 {
@@ -78,6 +79,8 @@ Configuration is self-describing, just copy *config.example.json* to *config.jso
     "address": "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em",
     // Don't validate login, useful for other CN coins
     "bypassAddressValidation": false,
+    // Don't validate shares for efficiency
+    "bypassShareValidation": false,
 
     "threads": 2,
 
@@ -127,7 +130,6 @@ In-RAM stats with a simple self hosted frontend.
 
 * **BTC**: [16bBz4wZPh7kV53nFMf8LmtJHE2rHsADB2](https://blockchain.info/address/16bBz4wZPh7kV53nFMf8LmtJHE2rHsADB2)
 * **XMR**: 4Aag5kkRHmCFHM5aRUtfB2RF3c5NDmk5CVbGdg6fefszEhhFdXhnjiTCr81YxQ9bsi73CSHT3ZN3p82qyakHwZ2GHYqeaUr
-* **XMR openalias**: wallet.hashinvest.net
 
 ### License
 
