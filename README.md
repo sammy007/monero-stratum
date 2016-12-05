@@ -5,7 +5,7 @@ High performance CryptoNote mining stratum written in Golang.
 **Stratum feature list:**
 
 * Concurrent shares processing
-* AES-NI enabled share validation code with fallback to slow implementation provided by linking with [**Monero**](https://github.com/monero-project/monero) libraries
+* AES-NI enabled share validation code with fallback to slow implementation
 * Integrated NewRelic performance monitoring plugin
 
 ### Installation
@@ -14,7 +14,7 @@ Dependencies:
 
   * go-1.6
   * Everything required to build monero
-  * Monero *v0.10.0*
+  * Monero **v0.10.0**
 
 #### Mac OS X
 
@@ -24,7 +24,7 @@ Install required packages:
     export GOPATH=~/go
     go get github.com/yvasiyarov/gorelic
 
-Download and compile [Monero](https://github.com/monero-project/monero) *v0.9.4*.
+Download and compile [Monero](https://github.com/monero-project/monero) **v0.10.0**.
 
 Now clone stratum repo and compile it:
 
