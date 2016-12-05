@@ -13,9 +13,9 @@ include_directories("${MONERO_DIR}/src")
 add_library(${CXXLIB} SHARED cnutilxx/main.cpp)
 
 target_link_libraries(${CXXLIB}
-    ${MONERO_DIR}/build/release/src/cryptonote_core/libcryptonote_core.a
-    ${MONERO_DIR}/build/release/src/crypto/libcrypto.a
-    ${MONERO_DIR}/build/release/src/common/libcommon.a
+    ${MONERO_DIR}/src/cryptonote_core/libcryptonote_core.a
+    ${MONERO_DIR}/src/crypto/libcrypto.a
+    ${MONERO_DIR}/src/common/libcommon.a
 )
 
 target_link_libraries(${CXXLIB}

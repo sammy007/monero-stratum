@@ -7,5 +7,5 @@ include_directories("${MONERO_DIR}/src")
 
 add_library(${LIB} SHARED src/hashing.c)
 target_link_libraries(${LIB}
-    ${MONERO_DIR}/build/release/src/crypto/libcrypto.a
+    ${MONERO_DIR}/src/crypto/libcrypto.a
 )

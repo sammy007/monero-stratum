@@ -5,7 +5,7 @@ High performance CryptoNote mining stratum written in Golang.
 **Stratum feature list:**
 
 * Concurrent shares processing
-* AES-NI enabled share validation code with fallback to slow implementation provided by linking with [**Monero**](https://github.com/monero-project/bitmonero) libraries
+* AES-NI enabled share validation code with fallback to slow implementation provided by linking with [**Monero**](https://github.com/monero-project/monero) libraries
 * Integrated NewRelic performance monitoring plugin
 
 ### Installation
@@ -13,7 +13,8 @@ High performance CryptoNote mining stratum written in Golang.
 Dependencies:
 
   * go-1.6
-  * Everything required to build bitmonero
+  * Everything required to build monero
+  * Monero *v0.9.4* (only to link hashing code with it)
 
 #### Mac OS X
 
@@ -23,7 +24,7 @@ Install required packages:
     export GOPATH=~/go
     go get github.com/yvasiyarov/gorelic
 
-Download and compile [Monero](https://github.com/monero-project/bitmonero) daemon.
+Download and compile [Monero](https://github.com/monero-project/monero) *v0.9.4*.
 
 Now clone stratum repo and compile it:
 
@@ -31,9 +32,9 @@ Now clone stratum repo and compile it:
     cmake .
     make
 
-Notice that for share validation stratum requires bitmonero source tree where .a libs already compiled. By default stratum will use <code>../bitmonero</code> directory. You can override this behavior by passing <code>MONERO_DIR</code> env variable:
+Notice that for share validation stratum requires monero source tree where .a libs already compiled. By default stratum will use <code>../monero</code> directory. You can override this behavior by passing <code>MONERO_DIR</code> env variable:
 
-    MONERO_DIR=/path/to/bitmonero cmake .
+    MONERO_DIR=/path/to/monero cmake .
     make
 
 Build stratum:
@@ -50,13 +51,13 @@ Install required packages:
     export GOPATH=~/go
     go get github.com/yvasiyarov/gorelic
 
-In order to successfully link with bitmonero libs, recompile bitmonero with:
+In order to successfully link with monero libs, recompile monero with:
 
-    CXXFLAGS="-fPIC" CFLAGS="-fPIC" make release
+    CXXFLAGS="-fPIC" CFLAGS="-fPIC" make
 
 Build CGO extensions:
 
-    MONERO_DIR=/opt/src/bitmonero cmake .
+    MONERO_DIR=/opt/src/monero cmake .
     make
 
 Build stratum:
