@@ -16,6 +16,7 @@ target_link_libraries(${CXXLIB}
     ${MONERO_DIR}/src/cryptonote_core/libcryptonote_core.a
     ${MONERO_DIR}/src/crypto/libcrypto.a
     ${MONERO_DIR}/src/common/libcommon.a
+    ${MONERO_DIR}/src/ringct/libringct.a
 )
 
 target_link_libraries(${CXXLIB}
