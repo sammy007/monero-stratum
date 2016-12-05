@@ -32,8 +32,8 @@
     },
 
     "daemon": {
-        "host": "node.moneroclub.com",
-        "port": 8880,
+        "host": "127.0.0.1",
+        "port": 18081,
         "timeout": "10s"
     },
 
