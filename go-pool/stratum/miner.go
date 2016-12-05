@@ -110,10 +110,16 @@ func (m *Miner) processShare(s *StratumServer, job *Job, t *BlockTemplate, nonce
 	nonceBuff, _ := hex.DecodeString(nonce)
 	copy(shareBuff[39:], nonceBuff)
 
-	convertedBlob := cnutil.ConvertBlob(shareBuff)
-	hashBytes := hashing.Hash(convertedBlob, false)
+	var hashBytes, convertedBlob []byte
 
-	if hex.EncodeToString(hashBytes) != result {
+	if s.config.BypassShareValidation {
+		hashBytes, _ = hex.DecodeString(result)
+	} else {
+		convertedBlob = cnutil.ConvertBlob(shareBuff)
+		hashBytes = hashing.Hash(convertedBlob, false)
+	}
+
+	if !s.config.BypassShareValidation && hex.EncodeToString(hashBytes) != result {
 		log.Printf("Bad hash from miner %v@%v", m.Login, m.IP)
 		return false
 	}
@@ -125,6 +131,9 @@ func (m *Miner) processShare(s *StratumServer, job *Job, t *BlockTemplate, nonce
 		if err != nil {
 			log.Printf("Block submission failure at height %v: %v", t.Height, err)
 		} else {
+			if len(convertedBlob) == 0 {
+				convertedBlob = cnutil.ConvertBlob(shareBuff)
+			}
 			blockFastHash := hex.EncodeToString(hashing.FastHash(convertedBlob))
 			// Immediately refresh current BT and send new jobs
 			s.refreshBlockTemplate(true)

@@ -3,6 +3,7 @@ package pool
 type Config struct {
 	Address                 string  `json:"address"`
 	BypassAddressValidation bool    `json:"bypassAddressValidation"`
+	BypassShareValidation   bool    `json:"bypassShareValidation"`
 	Stratum                 Stratum `json:"stratum"`
 	Daemon                  Daemon  `json:"daemon"`
 
