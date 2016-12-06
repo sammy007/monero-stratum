@@ -19,12 +19,12 @@ func init() {
 
 func (s *StratumServer) handleLoginRPC(cs *Session, e *Endpoint, params *LoginParams) (*JobReply, *ErrorReply) {
 	if !s.config.BypassAddressValidation && !util.ValidateAddress(params.Login, s.config.Address) {
-		return nil, &ErrorReply{Code: -1, Message: "Invalid address used for login", Close: true}
+		return nil, &ErrorReply{Code: -1, Message: "Invalid address used for login"}
 	}
 
 	t := s.currentBlockTemplate()
 	if t == nil {
-		return nil, &ErrorReply{Code: -1, Message: "Job not ready", Close: true}
+		return nil, &ErrorReply{Code: -1, Message: "Job not ready"}
 	}
 
 	id := extractWorkerId(params.Login)
@@ -42,71 +42,58 @@ func (s *StratumServer) handleLoginRPC(cs *Session, e *Endpoint, params *LoginPa
 	return &JobReply{Id: id, Job: cs.getJob(t), Status: "OK"}, nil
 }
 
-func (s *StratumServer) handleGetJobRPC(cs *Session, e *Endpoint, params *GetJobParams) (reply *JobReplyData, errorReply *ErrorReply) {
+func (s *StratumServer) handleGetJobRPC(cs *Session, e *Endpoint, params *GetJobParams) (*JobReplyData, *ErrorReply) {
 	miner, ok := s.miners.Get(params.Id)
 	if !ok {
-		errorReply = &ErrorReply{Code: -1, Message: "Unauthenticated", Close: true}
-		return
+		return nil, &ErrorReply{Code: -1, Message: "Unauthenticated"}
 	}
 	t := s.currentBlockTemplate()
 	if t == nil {
-		errorReply = &ErrorReply{Code: -1, Message: "Job not ready", Close: true}
-		return
+		return nil, &ErrorReply{Code: -1, Message: "Job not ready"}
 	}
 	miner.heartbeat()
-	reply = cs.getJob(t)
-	return
+	return cs.getJob(t), nil
 }
 
-func (s *StratumServer) handleSubmitRPC(cs *Session, e *Endpoint, params *SubmitParams) (reply *SubmitReply, errorReply *ErrorReply) {
+func (s *StratumServer) handleSubmitRPC(cs *Session, e *Endpoint, params *SubmitParams) (*SubmitReply, *ErrorReply) {
 	miner, ok := s.miners.Get(params.Id)
 	if !ok {
-		errorReply = &ErrorReply{Code: -1, Message: "Unauthenticated", Close: true}
-		return
+		return nil, &ErrorReply{Code: -1, Message: "Unauthenticated"}
 	}
 	miner.heartbeat()
 
 	job := cs.findJob(params.JobId)
 	if job == nil {
-		errorReply = &ErrorReply{Code: -1, Message: "Invalid job id", Close: true}
-		atomic.AddUint64(&miner.invalidShares, 1)
-		return
+		return nil, &ErrorReply{Code: -1, Message: "Invalid job id"}
 	}
 
 	if !noncePattern.MatchString(params.Nonce) {
-		errorReply = &ErrorReply{Code: -1, Message: "Malformed nonce", Close: true}
-		atomic.AddUint64(&miner.invalidShares, 1)
-		return
+		return nil, &ErrorReply{Code: -1, Message: "Malformed nonce"}
 	}
 	nonce := strings.ToLower(params.Nonce)
 	exist := job.submit(nonce)
 	if exist {
-		errorReply = &ErrorReply{Code: -1, Message: "Duplicate share", Close: true}
 		atomic.AddUint64(&miner.invalidShares, 1)
-		return
+		return nil, &ErrorReply{Code: -1, Message: "Duplicate share"}
 	}
 
 	t := s.currentBlockTemplate()
 	if job.height != t.Height {
-		log.Printf("Block expired for height %v %s@%s", job.height, miner.Id, miner.IP)
-		errorReply = &ErrorReply{Code: -1, Message: "Block expired", Close: false}
+		log.Printf("Stale share for height %d from %s@%s", job.height, miner.Id, miner.IP)
 		atomic.AddUint64(&miner.staleShares, 1)
-		return
+		return nil, &ErrorReply{Code: -1, Message: "Block expired"}
 	}
 
 	validShare := miner.processShare(s, e, job, t, nonce, params.Result)
 	if !validShare {
-		errorReply = &ErrorReply{Code: -1, Message: "Low difficulty share", Close: !ok}
-		return
+		return nil, &ErrorReply{Code: -1, Message: "Low difficulty share"}
 	}
-
-	reply = &SubmitReply{Status: "OK"}
-	return
+	return &SubmitReply{Status: "OK"}, nil
 }
 
 func (s *StratumServer) handleUnknownRPC(cs *Session, req *JSONRpcReq) *ErrorReply {
 	log.Printf("Unknown RPC method: %v", req)
-	return &ErrorReply{Code: -1, Message: "Invalid method", Close: true}
+	return &ErrorReply{Code: -1, Message: "Invalid method"}
 }
 
 func (s *StratumServer) broadcastNewJobs() {

@@ -57,5 +57,4 @@ type SubmitReply struct {
 type ErrorReply struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
-	Close   bool   `json:"-"`
 }

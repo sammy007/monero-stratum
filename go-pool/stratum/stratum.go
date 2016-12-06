@@ -261,7 +261,7 @@ func (cs *Session) handleMessage(s *StratumServer, e *Endpoint, req *JSONRpcReq)
 		}
 		reply, errReply := s.handleSubmitRPC(cs, e, &params)
 		if errReply != nil {
-			return cs.sendError(req.Id, errReply, true)
+			return cs.sendError(req.Id, errReply, false)
 		}
 		return cs.sendResult(req.Id, &reply)
 	default:
