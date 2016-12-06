@@ -194,6 +194,7 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 			s.refreshBlockTemplate(true)
 			atomic.AddUint64(&m.accepts, 1)
 			atomic.AddUint64(&r.Accepts, 1)
+			atomic.StoreInt64(&r.LastSubmissionAt, util.MakeTimestamp())
 			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.Height, m.Login, m.IP)
 		}
 	} else if hashDiff < job.Difficulty {
