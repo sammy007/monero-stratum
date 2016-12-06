@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"../rpc"
 	"../util"
 )
 
@@ -24,6 +25,16 @@ func (s *StratumServer) StatsIndex(w http.ResponseWriter, r *http.Request) {
 		"now":         util.MakeTimestamp(),
 	}
 
+	var upstreams []interface{}
+	current := atomic.LoadInt32(&s.upstream)
+
+	for i, u := range s.upstreams {
+		upstream := convertUpstream(u)
+		upstream["current"] = current == int32(i)
+		upstreams = append(upstreams, upstream)
+	}
+	stats["upstreams"] = upstreams
+	stats["current"] = convertUpstream(s.rpc())
 	stats["luck"] = s.getLuckStats()
 
 	if t := s.currentBlockTemplate(); t != nil {
@@ -34,6 +45,19 @@ func (s *StratumServer) StatsIndex(w http.ResponseWriter, r *http.Request) {
 		stats["template"] = true
 	}
 	json.NewEncoder(w).Encode(stats)
+}
+
+func convertUpstream(u *rpc.RPCClient) map[string]interface{} {
+	upstream := map[string]interface{}{
+		"name":             u.Name,
+		"url":              u.Url.String(),
+		"sick":             u.Sick(),
+		"accepts":          atomic.LoadUint64(&u.Accepts),
+		"rejects":          atomic.LoadUint64(&u.Rejects),
+		"lastSubmissionAt": atomic.LoadInt64(&u.LastSubmissionAt),
+		"failsCount":       atomic.LoadUint64(&u.FailsCount),
+	}
+	return upstream
 }
 
 func (s *StratumServer) collectMinersStats() (float64, float64, int, []interface{}) {

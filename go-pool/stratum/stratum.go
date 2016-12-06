@@ -21,7 +21,8 @@ type StratumServer struct {
 	config           *pool.Config
 	miners           MinersMap
 	blockTemplate    atomic.Value
-	rpc              *rpc.RPCClient
+	upstream         int32
+	upstreams        []*rpc.RPCClient
 	timeout          time.Duration
 	estimationWindow time.Duration
 	blocksMu         sync.RWMutex
@@ -50,7 +51,19 @@ const (
 
 func NewStratum(cfg *pool.Config) *StratumServer {
 	stratum := &StratumServer{config: cfg}
-	stratum.rpc = rpc.NewRPCClient(cfg)
+
+	stratum.upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
+	for i, v := range cfg.Upstream {
+		client, err := rpc.NewRPCClient(&v)
+		if err != nil {
+			log.Fatal(err)
+		} else {
+			stratum.upstreams[i] = client
+			log.Printf("Upstream: %s => %s", client.Name, client.Url)
+		}
+	}
+	log.Printf("Default upstream: %s => %s", stratum.rpc().Name, stratum.rpc().Url)
+
 	stratum.miners = NewMinersMap()
 
 	timeout, _ := time.ParseDuration(cfg.Stratum.Timeout)
@@ -71,6 +84,9 @@ func NewStratum(cfg *pool.Config) *StratumServer {
 	refreshTimer := time.NewTimer(refreshIntv)
 	log.Printf("Set block refresh every %v", refreshIntv)
 
+	checkIntv, _ := time.ParseDuration(cfg.UpstreamCheckInterval)
+	checkTimer := time.NewTimer(checkIntv)
+
 	go func() {
 		for {
 			select {
@@ -80,6 +96,17 @@ func NewStratum(cfg *pool.Config) *StratumServer {
 			}
 		}
 	}()
+
+	go func() {
+		for {
+			select {
+			case <-checkTimer.C:
+				stratum.checkUpstreams()
+				checkTimer.Reset(checkIntv)
+			}
+		}
+	}()
+
 	return stratum
 }
 
@@ -278,6 +305,32 @@ func (s *StratumServer) currentBlockTemplate() *BlockTemplate {
 		return t.(*BlockTemplate)
 	}
 	return nil
+}
+
+func (s *StratumServer) checkUpstreams() {
+	candidate := int32(0)
+	backup := false
+
+	for i, v := range s.upstreams {
+		ok, err := v.Check(8, s.config.Address)
+		if err != nil {
+			log.Printf("Upstream %v didn't pass check: %v", v.Name, err)
+		}
+		if ok && !backup {
+			candidate = int32(i)
+			backup = true
+		}
+	}
+
+	if s.upstream != candidate {
+		log.Printf("Switching to %v upstream", s.upstreams[candidate].Name)
+		atomic.StoreInt32(&s.upstream, candidate)
+	}
+}
+
+func (s *StratumServer) rpc() *rpc.RPCClient {
+	i := atomic.LoadInt32(&s.upstream)
+	return s.upstreams[i]
 }
 
 func checkError(err error) {

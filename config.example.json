@@ -42,11 +42,14 @@
 		"hideIP": false
 	},
 
-	"daemon": {
-		"host": "127.0.0.1",
-		"port": 18081,
-		"timeout": "10s"
-	},
+	"upstream": [
+		{
+			"name": "Main",
+			"host": "127.0.0.1",
+			"port": 18081,
+			"timeout": "10s"
+		}
+	],
 
 	"newrelicEnabled": false,
 	"newrelicName": "MyStratum",

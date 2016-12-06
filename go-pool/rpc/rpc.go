@@ -5,16 +5,29 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"net/url"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"../pool"
 )
 
 type RPCClient struct {
-	url    string
-	client *http.Client
+	sync.RWMutex
+	Url              *url.URL
+	login            string
+	password         string
+	Name             string
+	sick             bool
+	sickRate         int
+	successRate      int
+	Accepts          uint64
+	Rejects          uint64
+	LastSubmissionAt int64
+	client           *http.Client
+	FailsCount       uint64
 }
 
 type GetBlockTemplateReply struct {
@@ -31,61 +44,104 @@ type JSONRpcResp struct {
 	Error  map[string]interface{} `json:"error"`
 }
 
-func NewRPCClient(cfg *pool.Config) *RPCClient {
-	url := fmt.Sprintf("http://%s:%v/json_rpc", cfg.Daemon.Host, cfg.Daemon.Port)
-	rpcClient := &RPCClient{url: url}
-	timeout, _ := time.ParseDuration(cfg.Daemon.Timeout)
+func NewRPCClient(cfg *pool.Upstream) (*RPCClient, error) {
+	rawUrl := fmt.Sprintf("http://%s:%v/json_rpc", cfg.Host, cfg.Port)
+	url, err := url.Parse(rawUrl)
+	if err != nil {
+		return nil, err
+	}
+	rpcClient := &RPCClient{Name: cfg.Name, Url: url}
+	timeout, _ := time.ParseDuration(cfg.Timeout)
 	rpcClient.client = &http.Client{
 		Timeout: timeout,
 	}
-	return rpcClient
+	return rpcClient, nil
 }
 
-func (r *RPCClient) GetBlockTemplate(reserveSize int, address string) (GetBlockTemplateReply, error) {
+func (r *RPCClient) GetBlockTemplate(reserveSize int, address string) (*GetBlockTemplateReply, error) {
 	params := map[string]interface{}{"reserve_size": reserveSize, "wallet_address": address}
-
-	rpcResp, err := r.doPost(r.url, "getblocktemplate", params)
-	var reply GetBlockTemplateReply
+	rpcResp, err := r.doPost(r.Url.String(), "getblocktemplate", params)
+	var reply *GetBlockTemplateReply
 	if err != nil {
-		return reply, err
+		return nil, err
 	}
-	if rpcResp.Error != nil {
-		return reply, errors.New(string(rpcResp.Error["message"].(string)))
+	if rpcResp.Result != nil {
+		err = json.Unmarshal(*rpcResp.Result, &reply)
 	}
-
-	err = json.Unmarshal(*rpcResp.Result, &reply)
 	return reply, err
 }
 
-func (r *RPCClient) SubmitBlock(hash string) (JSONRpcResp, error) {
-	rpcResp, err := r.doPost(r.url, "submitblock", []string{hash})
-	if err != nil {
-		return rpcResp, err
-	}
-	if rpcResp.Error != nil {
-		return rpcResp, errors.New(string(rpcResp.Error["message"].(string)))
-	}
-	return rpcResp, nil
+func (r *RPCClient) SubmitBlock(hash string) (*JSONRpcResp, error) {
+	return r.doPost(r.Url.String(), "submitblock", []string{hash})
 }
 
-func (r *RPCClient) doPost(url string, method string, params interface{}) (JSONRpcResp, error) {
-	jsonReq := map[string]interface{}{"id": "0", "method": method, "params": params}
+func (r *RPCClient) doPost(url, method string, params interface{}) (*JSONRpcResp, error) {
+	jsonReq := map[string]interface{}{"jsonrpc": "2.0", "id": 0, "method": method, "params": params}
 	data, _ := json.Marshal(jsonReq)
-
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	req.Header.Set("Content-Length", (string)(len(data)))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-
+	req.SetBasicAuth(r.login, r.password)
 	resp, err := r.client.Do(req)
-	var rpcResp JSONRpcResp
-
 	if err != nil {
-		return rpcResp, err
+		r.markSick()
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(body, &rpcResp)
+	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+		return nil, errors.New(resp.Status)
+	}
+
+	var rpcResp *JSONRpcResp
+	err = json.NewDecoder(resp.Body).Decode(&rpcResp)
+	if err != nil {
+		r.markSick()
+		return nil, err
+	}
+	if rpcResp.Error != nil {
+		r.markSick()
+		return nil, errors.New(rpcResp.Error["message"].(string))
+	}
 	return rpcResp, err
+}
+
+func (r *RPCClient) Check(reserveSize int, address string) (bool, error) {
+	_, err := r.GetBlockTemplate(reserveSize, address)
+	if err != nil {
+		return false, err
+	}
+	r.markAlive()
+	return !r.Sick(), nil
+}
+
+func (r *RPCClient) Sick() bool {
+	r.RLock()
+	defer r.RUnlock()
+	return r.sick
+}
+
+func (r *RPCClient) markSick() {
+	r.Lock()
+	if !r.sick {
+		atomic.AddUint64(&r.FailsCount, 1)
+	}
+	r.sickRate++
+	r.successRate = 0
+	if r.sickRate >= 5 {
+		r.sick = true
+	}
+	r.Unlock()
+}
+
+func (r *RPCClient) markAlive() {
+	r.Lock()
+	r.successRate++
+	if r.successRate >= 5 {
+		r.sick = false
+		r.sickRate = 0
+		r.successRate = 0
+	}
+	r.Unlock()
 }

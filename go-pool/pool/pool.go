@@ -1,20 +1,21 @@
 package pool
 
 type Config struct {
-	Address                 string   `json:"address"`
-	BypassAddressValidation bool     `json:"bypassAddressValidation"`
-	BypassShareValidation   bool     `json:"bypassShareValidation"`
-	Stratum                 Stratum  `json:"stratum"`
-	Daemon                  Daemon   `json:"daemon"`
-	EstimationWindow        string   `json:"estimationWindow"`
-	LuckWindow              string   `json:"luckWindow"`
-	LargeLuckWindow         string   `json:"largeLuckWindow"`
-	Threads                 int      `json:"threads"`
-	Frontend                Frontend `json:"frontend"`
-	NewrelicName            string   `json:"newrelicName"`
-	NewrelicKey             string   `json:"newrelicKey"`
-	NewrelicVerbose         bool     `json:"newrelicVerbose"`
-	NewrelicEnabled         bool     `json:"newrelicEnabled"`
+	Address                 string     `json:"address"`
+	BypassAddressValidation bool       `json:"bypassAddressValidation"`
+	BypassShareValidation   bool       `json:"bypassShareValidation"`
+	Stratum                 Stratum    `json:"stratum"`
+	UpstreamCheckInterval   string     `json:"upstreamCheckInterval"`
+	Upstream                []Upstream `json:"upstream"`
+	EstimationWindow        string     `json:"estimationWindow"`
+	LuckWindow              string     `json:"luckWindow"`
+	LargeLuckWindow         string     `json:"largeLuckWindow"`
+	Threads                 int        `json:"threads"`
+	Frontend                Frontend   `json:"frontend"`
+	NewrelicName            string     `json:"newrelicName"`
+	NewrelicKey             string     `json:"newrelicKey"`
+	NewrelicVerbose         bool       `json:"newrelicVerbose"`
+	NewrelicEnabled         bool       `json:"newrelicEnabled"`
 }
 
 type Stratum struct {
@@ -30,7 +31,8 @@ type Port struct {
 	MaxConn    int    `json:"maxConn"`
 }
 
-type Daemon struct {
+type Upstream struct {
+	Name    string `json:"name"`
 	Host    string `json:"host"`
 	Port    int    `json:"port"`
 	Timeout string `json:"timeout"`

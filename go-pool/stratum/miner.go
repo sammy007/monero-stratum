@@ -145,6 +145,8 @@ func (m *Miner) findJob(id string) *Job {
 }
 
 func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTemplate, nonce string, result string) bool {
+	r := s.rpc()
+
 	shareBuff := make([]byte, len(t.Buffer))
 	copy(shareBuff, t.Buffer)
 	copy(shareBuff[t.ReservedOffset+4:t.ReservedOffset+7], e.instanceId)
@@ -179,9 +181,10 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 	block := hashDiff >= t.Difficulty
 
 	if block {
-		_, err := s.rpc.SubmitBlock(hex.EncodeToString(shareBuff))
+		_, err := r.SubmitBlock(hex.EncodeToString(shareBuff))
 		if err != nil {
 			atomic.AddUint64(&m.rejects, 1)
+			atomic.AddUint64(&r.Rejects, 1)
 			log.Printf("Block submission failure at height %v: %v", t.Height, err)
 		} else {
 			if len(convertedBlob) == 0 {
@@ -191,6 +194,7 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 			// Immediately refresh current BT and send new jobs
 			s.refreshBlockTemplate(true)
 			atomic.AddUint64(&m.accepts, 1)
+			atomic.AddUint64(&r.Accepts, 1)
 			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.Height, m.Login, m.IP)
 		}
 	} else if hashDiff < job.Difficulty {
