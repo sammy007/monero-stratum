@@ -22,8 +22,8 @@ Use Ubuntu 16.04 LTS.
 
 Compile Monero source (with libraries option):
 
-  cmake -DBUILD_SHARED_LIBS=1 .
-  make
+    cmake -DBUILD_SHARED_LIBS=1 .
+    make
 
 Install Golang and packages:
 
