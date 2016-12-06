@@ -5,32 +5,28 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"log"
-	"sync/atomic"
 
 	"../../cnutil"
 )
 
 type BlockTemplate struct {
-	Blob           string
 	Difficulty     int64
 	Height         int64
 	ReservedOffset int
 	PrevHash       string
 	Buffer         []byte
-	ExtraNonce     uint32
 }
 
-func (b *BlockTemplate) nextBlob() (string, uint32) {
-	// Preventing race by using atomic op here
-	// No need for using locks, because this is only one write to BT and it's atomic
-	extraNonce := atomic.AddUint32(&b.ExtraNonce, 1)
+func (b *BlockTemplate) nextBlob(extraNonce uint32, instanceId []byte) string {
 	extraBuff := new(bytes.Buffer)
 	binary.Write(extraBuff, binary.BigEndian, extraNonce)
+
 	blobBuff := make([]byte, len(b.Buffer))
-	copy(blobBuff, b.Buffer) // We never write to this buffer to prevent race
+	copy(blobBuff, b.Buffer)
+	copy(blobBuff[b.ReservedOffset+4:b.ReservedOffset+7], instanceId)
 	copy(blobBuff[b.ReservedOffset:], extraBuff.Bytes())
 	blob := cnutil.ConvertBlob(blobBuff)
-	return hex.EncodeToString(blob), extraNonce
+	return hex.EncodeToString(blob)
 }
 
 func (s *StratumServer) fetchBlockTemplate() bool {
@@ -52,15 +48,12 @@ func (s *StratumServer) fetchBlockTemplate() bool {
 		log.Printf("New block to mine at height %v, diff: %v, prev_hash: %s", reply.Height, reply.Difficulty, reply.PrevHash)
 	}
 	newTemplate := BlockTemplate{
-		Blob:           reply.Blob,
 		Difficulty:     reply.Difficulty,
 		Height:         reply.Height,
 		PrevHash:       reply.PrevHash,
 		ReservedOffset: reply.ReservedOffset,
 	}
 	newTemplate.Buffer, _ = hex.DecodeString(reply.Blob)
-	copy(newTemplate.Buffer[reply.ReservedOffset+4:reply.ReservedOffset+7], s.instanceId)
-	newTemplate.ExtraNonce = 0
 	s.blockTemplate.Store(&newTemplate)
 	return true
 }

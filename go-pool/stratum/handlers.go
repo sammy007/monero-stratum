@@ -14,14 +14,15 @@ func init() {
 	noncePattern, _ = regexp.Compile("^[0-9a-f]{8}$")
 }
 
-func (s *StratumServer) handleLoginRPC(cs *Session, params *LoginParams) (reply *JobReply, errorReply *ErrorReply) {
+func (s *StratumServer) handleLoginRPC(cs *Session, e *Endpoint, params *LoginParams) (reply *JobReply, errorReply *ErrorReply) {
 	if !s.config.BypassAddressValidation && !util.ValidateAddress(params.Login, s.config.Address) {
 		errorReply = &ErrorReply{Code: -1, Message: "Invalid address used for login", Close: true}
 		return
 	}
 
-	miner := NewMiner(params.Login, params.Pass, s.port.Difficulty, cs.ip)
+	miner := NewMiner(params.Login, params.Pass, e.config.Difficulty, cs.ip)
 	miner.Session = cs
+	miner.Endpoint = e
 	s.registerMiner(miner)
 	miner.heartbeat()
 
@@ -34,7 +35,7 @@ func (s *StratumServer) handleLoginRPC(cs *Session, params *LoginParams) (reply 
 	return
 }
 
-func (s *StratumServer) handleGetJobRPC(cs *Session, params *GetJobParams) (reply *JobReplyData, errorReply *ErrorReply) {
+func (s *StratumServer) handleGetJobRPC(cs *Session, e *Endpoint, params *GetJobParams) (reply *JobReplyData, errorReply *ErrorReply) {
 	miner, ok := s.miners.Get(params.Id)
 	if !ok {
 		errorReply = &ErrorReply{Code: -1, Message: "Unauthenticated", Close: true}
@@ -45,7 +46,7 @@ func (s *StratumServer) handleGetJobRPC(cs *Session, params *GetJobParams) (repl
 	return
 }
 
-func (s *StratumServer) handleSubmitRPC(cs *Session, params *SubmitParams) (reply *SubmitReply, errorReply *ErrorReply) {
+func (s *StratumServer) handleSubmitRPC(cs *Session, e *Endpoint, params *SubmitParams) (reply *SubmitReply, errorReply *ErrorReply) {
 	miner, ok := s.miners.Get(params.Id)
 	if !ok {
 		errorReply = &ErrorReply{Code: -1, Message: "Unauthenticated", Close: true}
@@ -77,7 +78,7 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, params *SubmitParams) (repl
 		return
 	}
 
-	validShare := miner.processShare(s, job, t, nonce, params.Result)
+	validShare := miner.processShare(s, e, job, t, nonce, params.Result)
 	if !validShare {
 		errorReply = &ErrorReply{Code: -1, Message: "Low difficulty share", Close: !ok}
 		return

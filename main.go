@@ -27,16 +27,8 @@ func startStratum() {
 		log.Printf("Running with default %v threads", n)
 	}
 
-	quit := make(chan bool)
-	for _, port := range cfg.Stratum.Ports {
-		s := stratum.NewStratum(&cfg, port)
-
-		go func() {
-			s.Listen()
-			quit <- true
-		}()
-	}
-	<-quit
+	s := stratum.NewStratum(&cfg)
+	s.Listen()
 }
 
 func startNewrelic() {

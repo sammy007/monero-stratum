@@ -35,6 +35,7 @@ type Miner struct {
 	TargetHex       string
 	LastBeat        int64
 	Session         *Session
+	Endpoint        *Endpoint
 }
 
 func (job *Job) submit(nonce string) bool {
@@ -75,7 +76,8 @@ func (m *Miner) getJob(s *StratumServer) *JobReplyData {
 		return &JobReplyData{}
 	}
 
-	blob, extraNonce := t.nextBlob()
+	extraNonce := atomic.AddUint32(&m.Endpoint.extraNonce, 1)
+	blob := t.nextBlob(extraNonce, m.Endpoint.instanceId)
 	job := &Job{Id: util.Random(), ExtraNonce: extraNonce, Height: t.Height, Difficulty: m.Difficulty}
 	job.Submissions = make(map[string]bool)
 	m.pushJob(job)
@@ -99,9 +101,10 @@ func (m *Miner) findJob(id string) *Job {
 	return nil
 }
 
-func (m *Miner) processShare(s *StratumServer, job *Job, t *BlockTemplate, nonce string, result string) bool {
+func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTemplate, nonce string, result string) bool {
 	shareBuff := make([]byte, len(t.Buffer))
 	copy(shareBuff, t.Buffer)
+	copy(shareBuff[t.ReservedOffset+4:t.ReservedOffset+7], e.instanceId)
 
 	extraBuff := new(bytes.Buffer)
 	binary.Write(extraBuff, binary.BigEndian, job.ExtraNonce)
@@ -144,6 +147,6 @@ func (m *Miner) processShare(s *StratumServer, job *Job, t *BlockTemplate, nonce
 		return false
 	}
 
-	log.Printf("Valid share at difficulty %v/%v", s.port.Difficulty, hashDiff)
+	log.Printf("Valid share at difficulty %v/%v", e.config.Difficulty, hashDiff)
 	return true
 }

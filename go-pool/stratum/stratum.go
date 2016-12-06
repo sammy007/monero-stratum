@@ -18,14 +18,17 @@ import (
 )
 
 type StratumServer struct {
-	config         *pool.Config
-	port           pool.Port
-	miners         MinersMap
-	blockTemplate  atomic.Value
-	instanceId     []byte
-	rpc            *rpc.RPCClient
-	timeout        time.Duration
-	broadcastTimer *time.Timer
+	config        *pool.Config
+	miners        MinersMap
+	blockTemplate atomic.Value
+	rpc           *rpc.RPCClient
+	timeout       time.Duration
+}
+
+type Endpoint struct {
+	config     *pool.Port
+	instanceId []byte
+	extraNonce uint32
 }
 
 type Session struct {
@@ -39,14 +42,8 @@ const (
 	MaxReqSize = 10 * 1024
 )
 
-func NewStratum(cfg *pool.Config, port pool.Port) *StratumServer {
-	b := make([]byte, 4)
-	_, err := rand.Read(b)
-	if err != nil {
-		log.Fatalf("Can't seed with random bytes: %v", err)
-	}
-
-	stratum := &StratumServer{config: cfg, port: port, instanceId: b}
+func NewStratum(cfg *pool.Config) *StratumServer {
+	stratum := &StratumServer{config: cfg}
 	stratum.rpc = rpc.NewRPCClient(cfg)
 	stratum.miners = NewMinersMap()
 
@@ -73,8 +70,29 @@ func NewStratum(cfg *pool.Config, port pool.Port) *StratumServer {
 	return stratum
 }
 
+func NewEndpoint(cfg *pool.Port) *Endpoint {
+	e := &Endpoint{config: cfg}
+	e.instanceId = make([]byte, 4)
+	_, err := rand.Read(e.instanceId)
+	if err != nil {
+		log.Fatalf("Can't seed with random bytes: %v", err)
+	}
+	return e
+}
+
 func (s *StratumServer) Listen() {
-	bindAddr := fmt.Sprintf("%s:%d", s.port.Host, s.port.Port)
+	quit := make(chan bool)
+	for _, port := range s.config.Stratum.Ports {
+		go func(cfg pool.Port) {
+			e := NewEndpoint(&cfg)
+			e.Listen(s)
+		}(port)
+	}
+	<-quit
+}
+
+func (e *Endpoint) Listen(s *StratumServer) {
+	bindAddr := fmt.Sprintf("%s:%d", e.config.Host, e.config.Port)
 	addr, err := net.ResolveTCPAddr("tcp", bindAddr)
 	checkError(err)
 	server, err := net.ListenTCP("tcp", addr)
@@ -82,7 +100,7 @@ func (s *StratumServer) Listen() {
 	defer server.Close()
 
 	log.Printf("Stratum listening on %s", bindAddr)
-	var accept = make(chan int, s.port.MaxConn)
+	accept := make(chan int, e.config.MaxConn)
 	n := 0
 
 	for {
@@ -96,7 +114,7 @@ func (s *StratumServer) Listen() {
 
 		accept <- n
 		go func() {
-			err = s.handleClient(conn, ip)
+			err = s.handleClient(conn, e, ip)
 			if err != nil {
 				conn.Close()
 			}
@@ -105,7 +123,7 @@ func (s *StratumServer) Listen() {
 	}
 }
 
-func (s *StratumServer) handleClient(conn *net.TCPConn, ip string) error {
+func (s *StratumServer) handleClient(conn *net.TCPConn, e *Endpoint, ip string) error {
 	cs := &Session{conn: conn, ip: ip}
 	cs.enc = json.NewEncoder(conn)
 	connbuff := bufio.NewReaderSize(conn, MaxReqSize)
@@ -135,13 +153,13 @@ func (s *StratumServer) handleClient(conn *net.TCPConn, ip string) error {
 				return err
 			}
 			s.setDeadline(conn)
-			cs.handleMessage(s, &req)
+			cs.handleMessage(s, e, &req)
 		}
 	}
 	return nil
 }
 
-func (cs *Session) handleMessage(s *StratumServer, req *JSONRpcReq) {
+func (cs *Session) handleMessage(s *StratumServer, e *Endpoint, req *JSONRpcReq) {
 	if req.Id == nil {
 		log.Println("Missing RPC id")
 		cs.conn.Close()
@@ -163,7 +181,7 @@ func (cs *Session) handleMessage(s *StratumServer, req *JSONRpcReq) {
 			log.Println("Unable to parse params")
 			break
 		}
-		reply, errReply := s.handleLoginRPC(cs, &params)
+		reply, errReply := s.handleLoginRPC(cs, e, &params)
 		if errReply != nil {
 			err = cs.sendError(req.Id, errReply)
 			break
@@ -176,7 +194,7 @@ func (cs *Session) handleMessage(s *StratumServer, req *JSONRpcReq) {
 			log.Println("Unable to parse params")
 			break
 		}
-		reply, errReply := s.handleGetJobRPC(cs, &params)
+		reply, errReply := s.handleGetJobRPC(cs, e, &params)
 		if errReply != nil {
 			err = cs.sendError(req.Id, errReply)
 			break
@@ -189,7 +207,7 @@ func (cs *Session) handleMessage(s *StratumServer, req *JSONRpcReq) {
 			log.Println("Unable to parse params")
 			break
 		}
-		reply, errReply := s.handleSubmitRPC(cs, &params)
+		reply, errReply := s.handleSubmitRPC(cs, e, &params)
 		if errReply != nil {
 			err = cs.sendError(req.Id, errReply)
 			break
