@@ -15,5 +15,6 @@ Makefile
 
 # Configs
 config.json
-aeon.json
+testnet.json
+mainnet.json
 pool
