@@ -78,8 +78,7 @@ func (m *Miner) pushJob(job *Job) {
 	}
 }
 
-func (m *Miner) getJob(s *StratumServer) *JobReplyData {
-	t := s.currentBlockTemplate()
+func (m *Miner) getJob(t *BlockTemplate) *JobReplyData {
 	height := atomic.SwapInt64(&m.LastBlockHeight, t.Height)
 
 	if height == t.Height {

@@ -21,6 +21,12 @@ func (s *StratumServer) handleLoginRPC(cs *Session, e *Endpoint, params *LoginPa
 		return
 	}
 
+	t := s.currentBlockTemplate()
+	if t == nil {
+		errorReply = &ErrorReply{Code: -1, Message: "Job not ready", Close: true}
+		return
+	}
+
 	miner := NewMiner(params.Login, params.Pass, e.config.Difficulty, cs.ip)
 	miner.Session = cs
 	miner.Endpoint = e
@@ -31,7 +37,7 @@ func (s *StratumServer) handleLoginRPC(cs *Session, e *Endpoint, params *LoginPa
 
 	reply = &JobReply{}
 	reply.Id = miner.Id
-	reply.Job = miner.getJob(s)
+	reply.Job = miner.getJob(t)
 	reply.Status = "OK"
 	return
 }
@@ -42,8 +48,13 @@ func (s *StratumServer) handleGetJobRPC(cs *Session, e *Endpoint, params *GetJob
 		errorReply = &ErrorReply{Code: -1, Message: "Unauthenticated", Close: true}
 		return
 	}
+	t := s.currentBlockTemplate()
+	if t == nil {
+		errorReply = &ErrorReply{Code: -1, Message: "Job not ready", Close: true}
+		return
+	}
 	miner.heartbeat()
-	reply = miner.getJob(s)
+	reply = miner.getJob(t)
 	return
 }
 
@@ -99,6 +110,10 @@ func (s *StratumServer) handleUnknownRPC(cs *Session, req *JSONRpcReq) *ErrorRep
 }
 
 func (s *StratumServer) broadcastNewJobs() {
+	t := s.currentBlockTemplate()
+	if t == nil {
+		return
+	}
 	log.Printf("Broadcasting new jobs to %v miners", s.miners.Count())
 	bcast := make(chan int, 1024*16)
 	n := 0
@@ -107,7 +122,7 @@ func (s *StratumServer) broadcastNewJobs() {
 		n++
 		bcast <- n
 		go func(miner *Miner) {
-			reply := miner.getJob(s)
+			reply := miner.getJob(t)
 			err := miner.Session.pushMessage("job", &reply)
 			<-bcast
 			if err != nil {
