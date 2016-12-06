@@ -30,17 +30,16 @@ func (s *StratumServer) handleLoginRPC(cs *Session, e *Endpoint, params *LoginPa
 	id := extractWorkerId(params.Login)
 	miner, ok := s.miners.Get(id)
 	if !ok {
-		miner = NewMiner(id, e.config.Difficulty, cs.ip)
+		miner = NewMiner(id, cs.ip)
+		s.registerMiner(miner)
 	}
 
 	log.Printf("Miner connected %s@%s", id, cs.ip)
 
-	miner.Session = cs
-	miner.Endpoint = e
-	s.registerMiner(miner)
+	s.registerSession(cs)
 	miner.heartbeat()
 
-	return &JobReply{Id: id, Job: miner.getJob(t, true), Status: "OK"}, nil
+	return &JobReply{Id: id, Job: cs.getJob(t), Status: "OK"}, nil
 }
 
 func (s *StratumServer) handleGetJobRPC(cs *Session, e *Endpoint, params *GetJobParams) (reply *JobReplyData, errorReply *ErrorReply) {
@@ -55,7 +54,7 @@ func (s *StratumServer) handleGetJobRPC(cs *Session, e *Endpoint, params *GetJob
 		return
 	}
 	miner.heartbeat()
-	reply = miner.getJob(t, false)
+	reply = cs.getJob(t)
 	return
 }
 
@@ -67,7 +66,7 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, e *Endpoint, params *Submit
 	}
 	miner.heartbeat()
 
-	job := miner.findJob(params.JobId)
+	job := cs.findJob(params.JobId)
 	if job == nil {
 		errorReply = &ErrorReply{Code: -1, Message: "Invalid job id", Close: true}
 		atomic.AddUint64(&miner.invalidShares, 1)
@@ -115,24 +114,27 @@ func (s *StratumServer) broadcastNewJobs() {
 	if t == nil {
 		return
 	}
-	log.Printf("Broadcasting new jobs to %v miners", s.miners.Count())
+	s.sessionsMu.RLock()
+	defer s.sessionsMu.RUnlock()
+	count := len(s.sessions)
+	log.Printf("Broadcasting new jobs to %d miners", count)
 	bcast := make(chan int, 1024*16)
 	n := 0
 
-	for m := range s.miners.IterBuffered() {
+	for m := range s.sessions {
 		n++
 		bcast <- n
-		go func(miner *Miner) {
-			reply := miner.getJob(t, true)
-			err := miner.Session.pushMessage("job", &reply)
+		go func(cs *Session) {
+			reply := cs.getJob(t)
+			err := cs.pushMessage("job", &reply)
 			<-bcast
 			if err != nil {
-				log.Printf("Job transmit error to %v@%v: %v", miner.Id, miner.IP, err)
-				s.removeMiner(miner.Id)
+				log.Printf("Job transmit error to %s: %v", cs.ip, err)
+				s.removeSession(cs)
 			} else {
-				s.setDeadline(miner.Session.conn)
+				s.setDeadline(cs.conn)
 			}
-		}(m.Val)
+		}(m)
 	}
 }
 

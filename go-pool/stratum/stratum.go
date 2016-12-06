@@ -15,6 +15,7 @@ import (
 
 	"../pool"
 	"../rpc"
+	"../util"
 )
 
 type StratumServer struct {
@@ -30,6 +31,8 @@ type StratumServer struct {
 	luckWindow       int64
 	luckLargeWindow  int64
 	roundShares      int64
+	sessionsMu       sync.RWMutex
+	sessions         map[*Session]struct{}
 }
 
 type Endpoint struct {
@@ -40,9 +43,15 @@ type Endpoint struct {
 
 type Session struct {
 	sync.Mutex
-	conn *net.TCPConn
-	enc  *json.Encoder
-	ip   string
+	conn            *net.TCPConn
+	enc             *json.Encoder
+	ip              string
+	endpoint        *Endpoint
+	difficulty      int64
+	validJobs       []*Job
+	lastBlockHeight int64
+	target          uint32
+	targetHex       string
 }
 
 const (
@@ -65,6 +74,7 @@ func NewStratum(cfg *pool.Config) *StratumServer {
 	log.Printf("Default upstream: %s => %s", stratum.rpc().Name, stratum.rpc().Url)
 
 	stratum.miners = NewMinersMap()
+	stratum.sessions = make(map[*Session]struct{})
 
 	timeout, _ := time.ParseDuration(cfg.Stratum.Timeout)
 	stratum.timeout = timeout
@@ -150,12 +160,14 @@ func (e *Endpoint) Listen(s *StratumServer) {
 		}
 		conn.SetKeepAlive(true)
 		ip, _, _ := net.SplitHostPort(conn.RemoteAddr().String())
+		cs := &Session{conn: conn, ip: ip, enc: json.NewEncoder(conn), endpoint: e}
 		n += 1
 
 		accept <- n
 		go func() {
-			err = s.handleClient(conn, e, ip)
+			err = s.handleClient(cs, e)
 			if err != nil {
+				s.removeSession(cs)
 				conn.Close()
 			}
 			<-accept
@@ -163,11 +175,12 @@ func (e *Endpoint) Listen(s *StratumServer) {
 	}
 }
 
-func (s *StratumServer) handleClient(conn *net.TCPConn, e *Endpoint, ip string) error {
-	cs := &Session{conn: conn, ip: ip}
-	cs.enc = json.NewEncoder(conn)
-	connbuff := bufio.NewReaderSize(conn, MaxReqSize)
-	s.setDeadline(conn)
+func (s *StratumServer) handleClient(cs *Session, e *Endpoint) error {
+	_, targetHex := util.GetTargetHex(e.config.Difficulty)
+	cs.targetHex = targetHex
+
+	connbuff := bufio.NewReaderSize(cs.conn, MaxReqSize)
+	s.setDeadline(cs.conn)
 
 	for {
 		data, isPrefix, err := connbuff.ReadLine()
@@ -192,7 +205,7 @@ func (s *StratumServer) handleClient(conn *net.TCPConn, e *Endpoint, ip string) 
 				log.Printf("Malformed request: %v", err)
 				return err
 			}
-			s.setDeadline(conn)
+			s.setDeadline(cs.conn)
 			cs.handleMessage(s, e, &req)
 		}
 	}
@@ -290,6 +303,25 @@ func (cs *Session) sendError(id *json.RawMessage, reply *ErrorReply) error {
 
 func (s *StratumServer) setDeadline(conn *net.TCPConn) {
 	conn.SetDeadline(time.Now().Add(s.timeout))
+}
+
+func (s *StratumServer) registerSession(cs *Session) {
+	s.sessionsMu.Lock()
+	defer s.sessionsMu.Unlock()
+	s.sessions[cs] = struct{}{}
+}
+
+func (s *StratumServer) removeSession(cs *Session) {
+	s.sessionsMu.Lock()
+	defer s.sessionsMu.Unlock()
+	delete(s.sessions, cs)
+}
+
+func (s *StratumServer) isActive(cs *Session) bool {
+	s.sessionsMu.RLock()
+	defer s.sessionsMu.RUnlock()
+	_, exist := s.sessions[cs]
+	return exist
 }
 
 func (s *StratumServer) registerMiner(miner *Miner) {

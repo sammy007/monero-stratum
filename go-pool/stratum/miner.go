@@ -25,16 +25,10 @@ type Job struct {
 
 type Miner struct {
 	sync.RWMutex
-	Id              string
-	IP              string
-	Difficulty      int64
-	ValidJobs       []*Job
-	LastBlockHeight int64
-	Target          uint32
-	TargetHex       string
-	LastBeat        int64
-	Session         *Session
-	Endpoint        *Endpoint
+	Id       string
+	IP       string
+	LastBeat int64
+	Endpoint *Endpoint
 
 	startedAt     int64
 	validShares   uint64
@@ -56,39 +50,46 @@ func (job *Job) submit(nonce string) bool {
 	return false
 }
 
-func NewMiner(id string, diff int64, ip string) *Miner {
+func NewMiner(id string, ip string) *Miner {
 	shares := make(map[int64]int64)
-	miner := &Miner{Id: id, Difficulty: diff, IP: ip, shares: shares}
-	target, targetHex := util.GetTargetHex(diff)
-	miner.Target = target
-	miner.TargetHex = targetHex
-	return miner
+	return &Miner{Id: id, IP: ip, shares: shares}
 }
 
-func (m *Miner) pushJob(job *Job) {
-	m.Lock()
-	defer m.Unlock()
-	m.ValidJobs = append(m.ValidJobs, job)
+func (cs *Session) getJob(t *BlockTemplate) *JobReplyData {
+	height := atomic.SwapInt64(&cs.lastBlockHeight, t.Height)
 
-	if len(m.ValidJobs) > 4 {
-		m.ValidJobs = m.ValidJobs[1:]
-	}
-}
-
-func (m *Miner) getJob(t *BlockTemplate, force bool) *JobReplyData {
-	height := atomic.SwapInt64(&m.LastBlockHeight, t.Height)
-
-	if !force && height == t.Height {
+	if height == t.Height {
 		return &JobReplyData{}
 	}
 
-	extraNonce := atomic.AddUint32(&m.Endpoint.extraNonce, 1)
-	blob := t.nextBlob(extraNonce, m.Endpoint.instanceId)
-	job := &Job{Id: util.Random(), ExtraNonce: extraNonce, Height: t.Height, Difficulty: m.Difficulty}
+	extraNonce := atomic.AddUint32(&cs.endpoint.extraNonce, 1)
+	blob := t.nextBlob(extraNonce, cs.endpoint.instanceId)
+	job := &Job{Id: util.Random(), ExtraNonce: extraNonce, Height: t.Height, Difficulty: cs.difficulty}
 	job.Submissions = make(map[string]bool)
-	m.pushJob(job)
-	reply := &JobReplyData{JobId: job.Id, Blob: blob, Target: m.TargetHex}
+	cs.pushJob(job)
+	reply := &JobReplyData{JobId: job.Id, Blob: blob, Target: cs.targetHex}
 	return reply
+}
+
+func (cs *Session) pushJob(job *Job) {
+	cs.Lock()
+	defer cs.Unlock()
+	cs.validJobs = append(cs.validJobs, job)
+
+	if len(cs.validJobs) > 4 {
+		cs.validJobs = cs.validJobs[1:]
+	}
+}
+
+func (cs *Session) findJob(id string) *Job {
+	cs.Lock()
+	defer cs.Unlock()
+	for _, job := range cs.validJobs {
+		if job.Id == id {
+			return job
+		}
+	}
+	return nil
 }
 
 func (m *Miner) heartbeat() {
@@ -127,17 +128,6 @@ func (m *Miner) hashrate(estimationWindow time.Duration) float64 {
 	}
 	m.Unlock()
 	return float64(totalShares) / float64(boundary)
-}
-
-func (m *Miner) findJob(id string) *Job {
-	m.RLock()
-	defer m.RUnlock()
-	for _, job := range m.ValidJobs {
-		if job.Id == id {
-			return job
-		}
-	}
-	return nil
 }
 
 func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTemplate, nonce string, result string) bool {
