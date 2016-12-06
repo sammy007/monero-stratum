@@ -6,6 +6,7 @@ type Config struct {
 	BypassShareValidation   bool     `json:"bypassShareValidation"`
 	Stratum                 Stratum  `json:"stratum"`
 	Daemon                  Daemon   `json:"daemon"`
+	EstimationWindow        string   `json:"estimationWindow"`
 	LuckWindow              string   `json:"luckWindow"`
 	LargeLuckWindow         string   `json:"largeLuckWindow"`
 	Threads                 int      `json:"threads"`

@@ -56,6 +56,14 @@ func NewStratum(cfg *pool.Config) *StratumServer {
 	timeout, _ := time.ParseDuration(cfg.Stratum.Timeout)
 	stratum.timeout = timeout
 
+	estimationWindow, _ := time.ParseDuration(cfg.EstimationWindow)
+	stratum.estimationWindow = estimationWindow
+
+	luckWindow, _ := time.ParseDuration(cfg.LuckWindow)
+	stratum.luckWindow = int64(luckWindow / time.Millisecond)
+	luckLargeWindow, _ := time.ParseDuration(cfg.LargeLuckWindow)
+	stratum.luckLargeWindow = int64(luckLargeWindow / time.Millisecond)
+
 	// Init block template
 	stratum.refreshBlockTemplate(false)
 

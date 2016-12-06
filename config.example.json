@@ -5,6 +5,10 @@
 
 	"threads": 2,
 
+	"estimationWindow": "15m",
+	"luckWindow": "24h",
+	"largeLuckWindow": "72h",
+
 	"stratum": {
 		"timeout": "15m",
 		"blockRefreshInterval": "1s",
