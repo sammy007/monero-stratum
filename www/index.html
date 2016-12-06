@@ -46,25 +46,10 @@
           </dl>
         </div>
         <div class="col-xs-12">
-          {{#if errors}}
-          <div id="alert" class="alert alert-danger" role="alert">
-            <strong>{{errors}}</strong>
-          </div>
-          {{/if}}
-          {{#if info}}
+          {{#if template}}
           <p>
-            {{#if template}}
             <strong>Block height:</strong> <span class="label label-primary">{{height}}</span>
             <strong>Difficulty:</strong> <span class="label label-primary">{{formatNumber diff maximumFractionDigits=4}}</span>
-            {{/if}}
-            {{#if info}}
-              {{#if testnet}}
-              <span class="label label-danger">TESTNET</span>
-              {{else}}
-              <span class="label label-success">MAINNET</span>
-              {{/if}}
-              <strong>Connections:</strong> <span class="label label-primary">{{formatNumber connections}}</span>
-            {{/if}}
           </p>
           {{/if}}
         </div>
