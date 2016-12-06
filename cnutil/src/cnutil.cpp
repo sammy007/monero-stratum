@@ -5,7 +5,7 @@
 
 using namespace cryptonote;
 
-extern "C" uint32_t cn_convert_blob(const char *blob, size_t len, char *out) {
+extern "C" uint32_t convert_blob(const char *blob, size_t len, char *out) {
     std::string input = std::string(blob, len);
     std::string output = "";
 
@@ -19,7 +19,7 @@ extern "C" uint32_t cn_convert_blob(const char *blob, size_t len, char *out) {
     return output.length();
 }
 
-extern "C" bool cn_validate_address(const char *addr, size_t len) {
+extern "C" bool validate_address(const char *addr, size_t len) {
     std::string input = std::string(addr, len);
     std::string output = "";
     uint64_t prefix;

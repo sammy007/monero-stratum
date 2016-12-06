@@ -8,53 +8,28 @@ High performance CryptoNote mining stratum written in Golang.
 * AES-NI enabled share validation code with fallback to slow implementation
 * Integrated NewRelic performance monitoring plugin
 
-### Installation
+## Installation
 
 Dependencies:
 
   * go-1.6
   * Everything required to build monero
-  * Monero **v0.10.0**
+  * Monero >= **v0.10.0**
 
-#### Mac OS X
+### Linux
 
-Install required packages:
+Use Ubuntu 16.04 LTS.
 
-    brew update && brew install go
-    export GOPATH=~/go
-    go get github.com/yvasiyarov/gorelic
+Compile Monero source (with libraries option):
 
-Download and compile [Monero](https://github.com/monero-project/monero) **v0.10.0**.
+  cmake -DBUILD_SHARED_LIBS=1 .
+  make
 
-Now clone stratum repo and compile it:
-
-    git clone https://github.com/sammy007/go-cryptonote-pool.git
-    cmake .
-    make
-
-Notice that for share validation stratum requires monero source tree where .a libs already compiled. By default stratum will use <code>../monero</code> directory. You can override this behavior by passing <code>MONERO_DIR</code> env variable:
-
-    MONERO_DIR=/path/to/monero cmake .
-    make
-
-Build stratum:
-
-    go build -o pool main.go
-
-#### Linux
-
-I would recommend you to use Ubuntu 16.04 LTS.
-
-Install required packages:
+Install Golang and packages:
 
     sudo apt-get install golang
     export GOPATH=~/go
     go get github.com/yvasiyarov/gorelic
-
-In order to successfully link with monero libs, recompile monero with:
-
-    cmake .
-    CXXFLAGS="-fPIC" CFLAGS="-fPIC" make
 
 Build CGO extensions:
 
@@ -65,11 +40,33 @@ Build stratum:
 
     go build -o pool main.go
 
-#### Running Stratum
+### Mac OS X
+
+Install Golang and packages packages:
+
+    brew update && brew install go
+    export GOPATH=~/go
+    go get github.com/yvasiyarov/gorelic
+
+Compile Monero source:
+
+    cmake .
+    make
+
+Now clone stratum repo and compile it:
+
+    MONERO_DIR=/opt/src/monero cmake .
+    make
+
+Build stratum:
+
+    go build -o pool main.go
+
+### Running Stratum
 
     ./pool config.json
 
-### Configuration
+## Configuration
 
 Configuration is self-describing, just copy *config.example.json* to *config.json* and run stratum with path to config file as 1st argument.
 

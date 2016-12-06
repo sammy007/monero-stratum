@@ -1,4 +1,4 @@
-set(CXXLIB "cnutilxx")
+set(CXXLIB "cnutil")
 
 find_package(Boost COMPONENTS thread system program_options date_time filesystem REQUIRED)
 
@@ -9,14 +9,21 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories("${MONERO_DIR}/contrib/epee/include")
 include_directories("${MONERO_DIR}/src")
 
+link_directories(
+    ${MONERO_DIR}/src/cryptonote_core
+    ${MONERO_DIR}/src/crypto
+    ${MONERO_DIR}/src/common
+    ${MONERO_DIR}/src/ringct
+)
+
 # Build library
-add_library(${CXXLIB} SHARED cnutilxx/main.cpp)
+add_library(${CXXLIB} SHARED src/cnutil.cpp)
 
 target_link_libraries(${CXXLIB}
-    ${MONERO_DIR}/src/cryptonote_core/libcryptonote_core.a
-    ${MONERO_DIR}/src/crypto/libcrypto.a
-    ${MONERO_DIR}/src/common/libcommon.a
-    ${MONERO_DIR}/src/ringct/libringct.a
+    cryptonote_core
+    crypto
+    common
+    ringct
 )
 
 target_link_libraries(${CXXLIB}
@@ -26,12 +33,3 @@ target_link_libraries(${CXXLIB}
     ${Boost_DATE_TIME_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
 )
-
-set(LIB "cnutil")
-
-# Flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -D_GNU_SOURCE")
-
-# Build library
-add_library(${LIB} SHARED cnutil.c)
-target_link_libraries(${LIB} ${CXXLIB})
