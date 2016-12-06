@@ -80,7 +80,7 @@ func NewStratum(cfg *pool.Config) *StratumServer {
 	// Init block template
 	stratum.refreshBlockTemplate(false)
 
-	refreshIntv, _ := time.ParseDuration(cfg.Stratum.BlockRefreshInterval)
+	refreshIntv, _ := time.ParseDuration(cfg.BlockRefreshInterval)
 	refreshTimer := time.NewTimer(refreshIntv)
 	log.Printf("Set block refresh every %v", refreshIntv)
 

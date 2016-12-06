@@ -9,9 +9,10 @@
 	"luckWindow": "24h",
 	"largeLuckWindow": "72h",
 
+	"blockRefreshInterval": "1s",
+
 	"stratum": {
 		"timeout": "15m",
-		"blockRefreshInterval": "1s",
 
 		"listen": [
 			{

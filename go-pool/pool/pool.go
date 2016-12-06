@@ -5,6 +5,7 @@ type Config struct {
 	BypassAddressValidation bool       `json:"bypassAddressValidation"`
 	BypassShareValidation   bool       `json:"bypassShareValidation"`
 	Stratum                 Stratum    `json:"stratum"`
+	BlockRefreshInterval    string     `json:"blockRefreshInterval"`
 	UpstreamCheckInterval   string     `json:"upstreamCheckInterval"`
 	Upstream                []Upstream `json:"upstream"`
 	EstimationWindow        string     `json:"estimationWindow"`
@@ -19,9 +20,8 @@ type Config struct {
 }
 
 type Stratum struct {
-	Timeout              string `json:"timeout"`
-	BlockRefreshInterval string `json:"blockRefreshInterval"`
-	Ports                []Port `json:"listen"`
+	Timeout string `json:"timeout"`
+	Ports   []Port `json:"listen"`
 }
 
 type Port struct {
