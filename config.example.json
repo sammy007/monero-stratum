@@ -1,44 +1,51 @@
 {
-    "address": "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em",
-    "bypassAddressValidation": true,
-    "bypassShareValidation": true,
+	"address": "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em",
+	"bypassAddressValidation": true,
+	"bypassShareValidation": true,
 
-    "threads": 2,
+	"threads": 2,
 
-    "stratum": {
-        "timeout": "15m",
-        "blockRefreshInterval": "1s",
+	"stratum": {
+		"timeout": "15m",
+		"blockRefreshInterval": "1s",
 
-        "listen": [
-            {
-                "host": "0.0.0.0",
-                "port": 1111,
-                "diff": 8000,
-                "maxConn": 32768
-            },
-            {
-                "host": "0.0.0.0",
-                "port": 3333,
-                "diff": 16000,
-                "maxConn": 32768
-            },
-            {
-                "host": "0.0.0.0",
-                "port": 5555,
-                "diff": 16000,
-                "maxConn": 32768
-            }
-        ]
-    },
+		"listen": [
+			{
+				"host": "0.0.0.0",
+				"port": 1111,
+				"diff": 8000,
+				"maxConn": 32768
+			},
+			{
+				"host": "0.0.0.0",
+				"port": 3333,
+				"diff": 16000,
+				"maxConn": 32768
+			},
+			{
+				"host": "0.0.0.0",
+				"port": 5555,
+				"diff": 16000,
+				"maxConn": 32768
+			}
+		]
+	},
 
-    "daemon": {
-        "host": "127.0.0.1",
-        "port": 18081,
-        "timeout": "10s"
-    },
+	"frontend": {
+		"listen": "0.0.0.0:8082",
+		"login": "admin",
+		"password": "",
+		"hideIP": false
+	},
 
-    "newrelicEnabled": false,
-    "newrelicName": "MyStratum",
-    "newrelicKey": "SECRET_KEY",
-    "newrelicVerbose": false
+	"daemon": {
+		"host": "127.0.0.1",
+		"port": 18081,
+		"timeout": "10s"
+	},
+
+	"newrelicEnabled": false,
+	"newrelicName": "MyStratum",
+	"newrelicKey": "SECRET_KEY",
+	"newrelicVerbose": false
 }

@@ -37,7 +37,7 @@ func (s *StratumServer) fetchBlockTemplate() bool {
 	}
 	t := s.currentBlockTemplate()
 
-	if t.PrevHash == reply.PrevHash {
+	if t != nil && t.PrevHash == reply.PrevHash {
 		// Fallback to height comparison
 		if len(reply.PrevHash) == 0 && reply.Height > t.Height {
 			log.Printf("New block to mine at height %v, diff: %v", reply.Height, reply.Difficulty)

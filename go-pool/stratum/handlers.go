@@ -4,6 +4,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"sync/atomic"
 
 	"../util"
 )
@@ -57,17 +58,20 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, e *Endpoint, params *Submit
 	job := miner.findJob(params.JobId)
 	if job == nil {
 		errorReply = &ErrorReply{Code: -1, Message: "Invalid job id", Close: true}
+		atomic.AddUint64(&miner.invalidShares, 1)
 		return
 	}
 
 	if !noncePattern.MatchString(params.Nonce) {
 		errorReply = &ErrorReply{Code: -1, Message: "Malformed nonce", Close: true}
+		atomic.AddUint64(&miner.invalidShares, 1)
 		return
 	}
 	nonce := strings.ToLower(params.Nonce)
 	exist := job.submit(nonce)
 	if exist {
 		errorReply = &ErrorReply{Code: -1, Message: "Duplicate share", Close: true}
+		atomic.AddUint64(&miner.invalidShares, 1)
 		return
 	}
 
@@ -75,6 +79,7 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, e *Endpoint, params *Submit
 	if job.Height != t.Height {
 		log.Printf("Block expired for height %v %s@%s", job.Height, miner.Login, miner.IP)
 		errorReply = &ErrorReply{Code: -1, Message: "Block expired", Close: false}
+		atomic.AddUint64(&miner.staleShares, 1)
 		return
 	}
 

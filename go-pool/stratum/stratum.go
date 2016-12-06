@@ -18,11 +18,17 @@ import (
 )
 
 type StratumServer struct {
-	config        *pool.Config
-	miners        MinersMap
-	blockTemplate atomic.Value
-	rpc           *rpc.RPCClient
-	timeout       time.Duration
+	config           *pool.Config
+	miners           MinersMap
+	blockTemplate    atomic.Value
+	rpc              *rpc.RPCClient
+	timeout          time.Duration
+	estimationWindow time.Duration
+	blocksMu         sync.RWMutex
+	blockStats       map[int64]float64
+	luckWindow       int64
+	luckLargeWindow  int64
+	roundShares      int64
 }
 
 type Endpoint struct {
@@ -51,7 +57,6 @@ func NewStratum(cfg *pool.Config) *StratumServer {
 	stratum.timeout = timeout
 
 	// Init block template
-	stratum.blockTemplate.Store(&BlockTemplate{})
 	stratum.refreshBlockTemplate(false)
 
 	refreshIntv, _ := time.ParseDuration(cfg.Stratum.BlockRefreshInterval)
@@ -261,7 +266,10 @@ func (s *StratumServer) removeMiner(id string) {
 }
 
 func (s *StratumServer) currentBlockTemplate() *BlockTemplate {
-	return s.blockTemplate.Load().(*BlockTemplate)
+	if t := s.blockTemplate.Load(); t != nil {
+		return t.(*BlockTemplate)
+	}
+	return nil
 }
 
 func checkError(err error) {

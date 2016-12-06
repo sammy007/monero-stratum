@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MoneroProxy</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="//cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+    <script src="handlebars-intl.min.js"></script>
+    <link href="style.css" rel="stylesheet">
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <script id="stats-template" type="text/x-handlebars-template">
+      <div class="row marketing">
+        <div class="col-xs-6">
+          <dl class="dl-horizontal">
+            <dt>Hashrate</dt>
+            <dd><span class="badge alert-info">{{formatNumber hashrate maximumFractionDigits=4}}</span></dd>
+            <dt>Hashrate 24h</dt>
+            <dd><span class="badge alert-info">{{formatNumber hashrate24h maximumFractionDigits=4}}</span></dd>
+            <dt>Total Miners</dt>
+            <dd><span class="badge alert-info">{{totalMiners}}</span></dd>
+            <dt>Miners Online</dt>
+            <dd><span class="badge alert-success">{{totalOnline}}</span></dd>
+          </dl>
+        </div>
+        <div class="col-xs-6">
+          <dl class="dl-horizontal">
+            {{#if current}}
+            <dt>Accepted</dt>
+            <dd><span class="badge alert-success">{{formatNumber current.accepts}}</span></dd>
+            <dt>Rejected</dt>
+            <dd><span class="badge alert-danger">{{formatNumber current.rejects}}</span></dd>
+            {{/if}}
+            <dt>Miners Timed Out</dt>
+            <dd><span class="badge alert-danger">{{formatNumber timedOut}}</span></dd>
+            {{#if current.lastSubmissionAt}}
+            <dt>Last Submission</dt>
+            <dd><span class="badge alert-info">{{formatRelative current.lastSubmissionAt now=now}}</span></dd>
+            {{/if}}
+          </dl>
+        </div>
+        <div class="col-xs-12">
+          {{#if errors}}
+          <div id="alert" class="alert alert-danger" role="alert">
+            <strong>{{errors}}</strong>
+          </div>
+          {{/if}}
+          {{#if info}}
+          <p>
+            {{#if template}}
+            <strong>Block height:</strong> <span class="label label-primary">{{height}}</span>
+            <strong>Difficulty:</strong> <span class="label label-primary">{{formatNumber diff maximumFractionDigits=4}}</span>
+            {{/if}}
+            {{#if info}}
+              {{#if testnet}}
+              <span class="label label-danger">TESTNET</span>
+              {{else}}
+              <span class="label label-success">MAINNET</span>
+              {{/if}}
+              <strong>Connections:</strong> <span class="label label-primary">{{formatNumber connections}}</span>
+            {{/if}}
+          </p>
+          {{/if}}
+        </div>
+        <div class="col-xs-12">
+          <p>
+            <strong>Blocks {{luck.window}}:</strong> <span class="label label-primary">{{formatNumber luck.blocksCount}}</span>
+            <strong>Shares/Diff {{luck.window}}:</strong>
+            <span class="label label-primary">{{formatNumber luck.variance style="percent" minimumFractionDigits=2 maximumFractionDigits=2}}</span>
+            <strong>Blocks {{luck.largeWindow}}:</strong> <span class="label label-primary">{{formatNumber luck.totalBlocksCount}}</span>
+            <strong>Shares/Diff {{luck.largeWindow}}:</strong>
+            <span class="label label-primary">{{formatNumber luck.totalVariance style="percent" minimumFractionDigits=2 maximumFractionDigits=2}}</span>
+            {{#if template}}
+            <strong>Round Progress:</strong>
+            <span class="label label-primary">{{formatNumber variance style="percent" minimumFractionDigits=2 maximumFractionDigits=2}}</span>
+            {{/if}}
+          </p>
+        </div>
+        <div class="col-xs-12">
+          <h4>Upstream</h4>
+          <table class="table table-condensed">
+            <tr>
+            <th>Name</th>
+            <th>Url</th>
+            <th>Accepted</th>
+            <th>Rejected</th>
+            <th>Fails</th>
+            </tr>
+            {{#each upstreams}}
+              {{#if sick}}
+              <tr class="danger">
+              {{else}}
+              <tr class="success">
+              {{/if}}
+              {{#if current}}
+              <td><strong>{{name}}</strong></td>
+              {{else}}
+              <td>{{name}}</td>
+              {{/if}}
+            <td>{{url}}</td>
+            <td>{{formatNumber accepts}}</td>
+            <td><strong>{{formatNumber rejects}}</strong></td>
+            <td>{{failsCount}}</td>
+            </tr>
+            {{/each}}
+          </table>
+        </div>
+        <div class="col-xs-12">
+          <h4>Miners</h4>
+          <div class="table-responsive">
+            <table class="table table-condensed">
+              <tr>
+              <th>ID</th>
+              <th>IP</th>
+              <th>HR</th>
+              <th>HR 24h</th>
+              <th>Last Share</th>
+              <th>Accepted</th>
+              <th>Rejected</th>
+              <th>Blocks Accepted</th>
+              <th>Blocks Rejected</th>
+              </tr>
+              {{#each miners}}
+                {{#if timeout}}
+                <tr class="danger">
+                {{else}}
+                  {{#if warning}}
+                  <tr class="warning">
+                  {{else}}
+                  <tr class="success">
+                  {{/if}}
+                {{/if}}
+              <td>{{name}}</td>
+              <td>
+                {{#if ip}}
+                  {{ip}}
+                {{else}}
+                  &mdash;
+                {{/if}}
+              </td>
+              <td>{{formatNumber hashrate maximumFractionDigits=4}}</td>
+              <td>{{formatNumber hashrate24h maximumFractionDigits=4}}</td>
+              <td>{{formatRelative lastBeat now=../now}}</td>
+              <td>{{formatNumber validShares}}</td>
+              <td><strong>{{formatNumber invalidShares}}</strong></td>
+              <td>{{formatNumber accepts}}</td>
+              <td>{{formatNumber rejects}}</td>
+              </tr>
+              {{/each}}
+            </table>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <div class="container">
+      <div class="header clearfix">
+        <h3 class="text-muted">MoneroProxy</h3>
+      </div>
+      <div id="alert" class="alert alert-danger hide" role="alert">
+        <strong>An error occured while polling proxy state.</strong>
+        Make sure proxy is running.
+      </div>
+      <a name="stats"></a>
+      <div id="stats"></div>
+    </div>
+    <footer class="footer">
+      <div class="container">
+        <p>
+          By <a href="https://github.com/sammy007" target="_blank">sammy007</a>.<br/>
+          <span><strong>XMR</strong>: 4Aag5kkRHmCFHM5aRUtfB2RF3c5NDmk5CVbGdg6fefszEhhFdXhnjiTCr81YxQ9bsi73CSHT3ZN3p82qyakHwZ2GHYqeaUr</span><br/>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

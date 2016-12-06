@@ -7,6 +7,7 @@ import (
 	"log"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"../../cnutil"
 	"../../hashing"
@@ -36,6 +37,14 @@ type Miner struct {
 	LastBeat        int64
 	Session         *Session
 	Endpoint        *Endpoint
+
+	startedAt     int64
+	validShares   uint64
+	invalidShares uint64
+	staleShares   uint64
+	accepts       uint64
+	rejects       uint64
+	shares        map[int64]int64
 }
 
 func (job *Job) submit(nonce string) bool {
@@ -90,6 +99,39 @@ func (m *Miner) heartbeat() {
 	atomic.StoreInt64(&m.LastBeat, now)
 }
 
+func (m *Miner) getLastBeat() int64 {
+	return atomic.LoadInt64(&m.LastBeat)
+}
+
+func (m *Miner) storeShare(diff int64) {
+	now := util.MakeTimestamp()
+	m.Lock()
+	m.shares[now] += diff
+	m.Unlock()
+}
+
+func (m *Miner) hashrate(hashrateWindow time.Duration) float64 {
+	now := util.MakeTimestamp()
+	totalShares := int64(0)
+	window := int64(hashrateWindow / time.Millisecond)
+	boundary := now - m.startedAt
+
+	if boundary > window {
+		boundary = window
+	}
+
+	m.Lock()
+	for k, v := range m.shares {
+		if k < now-86400000 {
+			delete(m.shares, k)
+		} else if k >= now-window {
+			totalShares += v
+		}
+	}
+	m.Unlock()
+	return float64(totalShares) / float64(boundary)
+}
+
 func (m *Miner) findJob(id string) *Job {
 	m.RLock()
 	defer m.RUnlock()
@@ -124,14 +166,17 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 
 	if !s.config.BypassShareValidation && hex.EncodeToString(hashBytes) != result {
 		log.Printf("Bad hash from miner %v@%v", m.Login, m.IP)
+		atomic.AddUint64(&m.invalidShares, 1)
 		return false
 	}
 
 	hashDiff := util.GetHashDifficulty(hashBytes).Int64() // FIXME: Will return max int64 value if overflows
+	atomic.AddInt64(&s.roundShares, hashDiff)
 	block := hashDiff >= t.Difficulty
 	if block {
 		_, err := s.rpc.SubmitBlock(hex.EncodeToString(shareBuff))
 		if err != nil {
+			atomic.AddUint64(&m.rejects, 1)
 			log.Printf("Block submission failure at height %v: %v", t.Height, err)
 		} else {
 			if len(convertedBlob) == 0 {
@@ -140,13 +185,16 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 			blockFastHash := hex.EncodeToString(hashing.FastHash(convertedBlob))
 			// Immediately refresh current BT and send new jobs
 			s.refreshBlockTemplate(true)
+			atomic.AddUint64(&m.accepts, 1)
 			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.Height, m.Login, m.IP)
 		}
 	} else if hashDiff < job.Difficulty {
 		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.Login, m.IP)
+		atomic.AddUint64(&m.invalidShares, 1)
 		return false
 	}
 
 	log.Printf("Valid share at difficulty %v/%v", e.config.Difficulty, hashDiff)
+	atomic.AddUint64(&m.validShares, 1)
 	return true
 }

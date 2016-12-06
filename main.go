@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,6 +13,8 @@ import (
 	"./go-pool/pool"
 	"./go-pool/stratum"
 
+	"github.com/goji/httpauth"
+	"github.com/gorilla/mux"
 	"github.com/yvasiyarov/gorelic"
 )
 
@@ -28,7 +31,24 @@ func startStratum() {
 	}
 
 	s := stratum.NewStratum(&cfg)
+	go startFrontend(&cfg, s)
 	s.Listen()
+}
+
+func startFrontend(cfg *pool.Config, s *stratum.StratumServer) {
+	r := mux.NewRouter()
+	r.HandleFunc("/stats", s.StatsIndex)
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./www/")))
+	var err error
+	if len(cfg.Frontend.Password) > 0 {
+		auth := httpauth.SimpleBasicAuth(cfg.Frontend.Login, cfg.Frontend.Password)
+		err = http.ListenAndServe(cfg.Frontend.Listen, auth(r))
+	} else {
+		err = http.ListenAndServe(cfg.Frontend.Listen, r)
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func startNewrelic() {
