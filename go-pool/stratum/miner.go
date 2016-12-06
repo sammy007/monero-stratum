@@ -191,6 +191,5 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 	}
 
 	log.Printf("Valid share at difficulty %v/%v", e.config.Difficulty, hashDiff)
-	atomic.AddUint64(&m.validShares, 1)
 	return true
 }
