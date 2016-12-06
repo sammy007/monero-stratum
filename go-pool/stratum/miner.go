@@ -16,11 +16,11 @@ import (
 
 type Job struct {
 	sync.RWMutex
-	Id          string
-	ExtraNonce  uint32
-	Height      int64
-	Difficulty  int64
-	Submissions map[string]bool
+	id          string
+	extraNonce  uint32
+	height      int64
+	difficulty  int64
+	submissions map[string]struct{}
 }
 
 type Miner struct {
@@ -42,11 +42,11 @@ type Miner struct {
 func (job *Job) submit(nonce string) bool {
 	job.Lock()
 	defer job.Unlock()
-	_, exist := job.Submissions[nonce]
+	_, exist := job.submissions[nonce]
 	if exist {
 		return true
 	}
-	job.Submissions[nonce] = true
+	job.submissions[nonce] = struct{}{}
 	return false
 }
 
@@ -64,10 +64,10 @@ func (cs *Session) getJob(t *BlockTemplate) *JobReplyData {
 
 	extraNonce := atomic.AddUint32(&cs.endpoint.extraNonce, 1)
 	blob := t.nextBlob(extraNonce, cs.endpoint.instanceId)
-	job := &Job{Id: util.Random(), ExtraNonce: extraNonce, Height: t.Height, Difficulty: cs.difficulty}
-	job.Submissions = make(map[string]bool)
+	job := &Job{id: util.Random(), extraNonce: extraNonce, height: t.Height, difficulty: cs.difficulty}
+	job.submissions = make(map[string]struct{})
 	cs.pushJob(job)
-	reply := &JobReplyData{JobId: job.Id, Blob: blob, Target: cs.targetHex}
+	reply := &JobReplyData{JobId: job.id, Blob: blob, Target: cs.targetHex}
 	return reply
 }
 
@@ -85,7 +85,7 @@ func (cs *Session) findJob(id string) *Job {
 	cs.Lock()
 	defer cs.Unlock()
 	for _, job := range cs.validJobs {
-		if job.Id == id {
+		if job.id == id {
 			return job
 		}
 	}
@@ -138,7 +138,7 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 	copy(shareBuff[t.ReservedOffset+4:t.ReservedOffset+7], e.instanceId)
 
 	extraBuff := new(bytes.Buffer)
-	binary.Write(extraBuff, binary.BigEndian, job.ExtraNonce)
+	binary.Write(extraBuff, binary.BigEndian, job.extraNonce)
 	copy(shareBuff[t.ReservedOffset:], extraBuff.Bytes())
 
 	nonceBuff, _ := hex.DecodeString(nonce)
@@ -184,7 +184,7 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 			atomic.StoreInt64(&r.LastSubmissionAt, util.MakeTimestamp())
 			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.Height, m.Id, m.IP)
 		}
-	} else if hashDiff < job.Difficulty {
+	} else if hashDiff < job.difficulty {
 		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.Id, m.IP)
 		atomic.AddUint64(&m.invalidShares, 1)
 		return false

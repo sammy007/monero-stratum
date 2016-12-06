@@ -87,8 +87,8 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, e *Endpoint, params *Submit
 	}
 
 	t := s.currentBlockTemplate()
-	if job.Height != t.Height {
-		log.Printf("Block expired for height %v %s@%s", job.Height, miner.Id, miner.IP)
+	if job.height != t.Height {
+		log.Printf("Block expired for height %v %s@%s", job.height, miner.Id, miner.IP)
 		errorReply = &ErrorReply{Code: -1, Message: "Block expired", Close: false}
 		atomic.AddUint64(&miner.staleShares, 1)
 		return
