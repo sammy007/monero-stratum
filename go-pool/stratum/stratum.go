@@ -186,10 +186,10 @@ func (s *StratumServer) handleClient(cs *Session, e *Endpoint) error {
 		data, isPrefix, err := connbuff.ReadLine()
 		if isPrefix {
 			log.Printf("Socket flood detected")
-			// TODO: Ban client
 			return errors.New("Socket flood")
 		} else if err == io.EOF {
-			log.Printf("Client disconnected")
+			log.Println("Client disconnected", cs.ip)
+			s.removeSession(cs)
 			break
 		} else if err != nil {
 			log.Printf("Error reading: %v", err)
