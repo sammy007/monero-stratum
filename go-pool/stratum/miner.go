@@ -26,8 +26,6 @@ type Job struct {
 type Miner struct {
 	sync.RWMutex
 	Id              string
-	Login           string
-	Pass            string
 	IP              string
 	Difficulty      int64
 	ValidJobs       []*Job
@@ -58,10 +56,9 @@ func (job *Job) submit(nonce string) bool {
 	return false
 }
 
-func NewMiner(login, pass string, diff int64, ip string) *Miner {
-	id := util.Random()
+func NewMiner(id string, diff int64, ip string) *Miner {
 	shares := make(map[int64]int64)
-	miner := &Miner{Id: id, Login: login, Pass: pass, Difficulty: diff, IP: ip, shares: shares}
+	miner := &Miner{Id: id, Difficulty: diff, IP: ip, shares: shares}
 	target, targetHex := util.GetTargetHex(diff)
 	miner.Target = target
 	miner.TargetHex = targetHex
@@ -78,10 +75,10 @@ func (m *Miner) pushJob(job *Job) {
 	}
 }
 
-func (m *Miner) getJob(t *BlockTemplate) *JobReplyData {
+func (m *Miner) getJob(t *BlockTemplate, force bool) *JobReplyData {
 	height := atomic.SwapInt64(&m.LastBlockHeight, t.Height)
 
-	if height == t.Height {
+	if !force && height == t.Height {
 		return &JobReplyData{}
 	}
 
@@ -167,7 +164,7 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 	}
 
 	if !s.config.BypassShareValidation && hex.EncodeToString(hashBytes) != result {
-		log.Printf("Bad hash from miner %v@%v", m.Login, m.IP)
+		log.Printf("Bad hash from miner %v@%v", m.Id, m.IP)
 		atomic.AddUint64(&m.invalidShares, 1)
 		return false
 	}
@@ -195,10 +192,10 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 			atomic.AddUint64(&m.accepts, 1)
 			atomic.AddUint64(&r.Accepts, 1)
 			atomic.StoreInt64(&r.LastSubmissionAt, util.MakeTimestamp())
-			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.Height, m.Login, m.IP)
+			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.Height, m.Id, m.IP)
 		}
 	} else if hashDiff < job.Difficulty {
-		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.Login, m.IP)
+		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.Id, m.IP)
 		atomic.AddUint64(&m.invalidShares, 1)
 		return false
 	}

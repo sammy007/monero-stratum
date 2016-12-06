@@ -11,35 +11,36 @@ import (
 
 var noncePattern *regexp.Regexp
 
+const defaultWorkerId = "0"
+
 func init() {
 	noncePattern, _ = regexp.Compile("^[0-9a-f]{8}$")
 }
 
-func (s *StratumServer) handleLoginRPC(cs *Session, e *Endpoint, params *LoginParams) (reply *JobReply, errorReply *ErrorReply) {
+func (s *StratumServer) handleLoginRPC(cs *Session, e *Endpoint, params *LoginParams) (*JobReply, *ErrorReply) {
 	if !s.config.BypassAddressValidation && !util.ValidateAddress(params.Login, s.config.Address) {
-		errorReply = &ErrorReply{Code: -1, Message: "Invalid address used for login", Close: true}
-		return
+		return nil, &ErrorReply{Code: -1, Message: "Invalid address used for login", Close: true}
 	}
 
 	t := s.currentBlockTemplate()
 	if t == nil {
-		errorReply = &ErrorReply{Code: -1, Message: "Job not ready", Close: true}
-		return
+		return nil, &ErrorReply{Code: -1, Message: "Job not ready", Close: true}
 	}
 
-	miner := NewMiner(params.Login, params.Pass, e.config.Difficulty, cs.ip)
+	id := extractWorkerId(params.Login)
+	miner, ok := s.miners.Get(id)
+	if !ok {
+		miner = NewMiner(id, e.config.Difficulty, cs.ip)
+	}
+
+	log.Printf("Miner connected %s@%s", id, cs.ip)
+
 	miner.Session = cs
 	miner.Endpoint = e
 	s.registerMiner(miner)
 	miner.heartbeat()
 
-	log.Printf("Miner connected %s@%s", params.Login, miner.IP)
-
-	reply = &JobReply{}
-	reply.Id = miner.Id
-	reply.Job = miner.getJob(t)
-	reply.Status = "OK"
-	return
+	return &JobReply{Id: id, Job: miner.getJob(t, true), Status: "OK"}, nil
 }
 
 func (s *StratumServer) handleGetJobRPC(cs *Session, e *Endpoint, params *GetJobParams) (reply *JobReplyData, errorReply *ErrorReply) {
@@ -54,7 +55,7 @@ func (s *StratumServer) handleGetJobRPC(cs *Session, e *Endpoint, params *GetJob
 		return
 	}
 	miner.heartbeat()
-	reply = miner.getJob(t)
+	reply = miner.getJob(t, false)
 	return
 }
 
@@ -88,7 +89,7 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, e *Endpoint, params *Submit
 
 	t := s.currentBlockTemplate()
 	if job.Height != t.Height {
-		log.Printf("Block expired for height %v %s@%s", job.Height, miner.Login, miner.IP)
+		log.Printf("Block expired for height %v %s@%s", job.Height, miner.Id, miner.IP)
 		errorReply = &ErrorReply{Code: -1, Message: "Block expired", Close: false}
 		atomic.AddUint64(&miner.staleShares, 1)
 		return
@@ -122,11 +123,11 @@ func (s *StratumServer) broadcastNewJobs() {
 		n++
 		bcast <- n
 		go func(miner *Miner) {
-			reply := miner.getJob(t)
+			reply := miner.getJob(t, true)
 			err := miner.Session.pushMessage("job", &reply)
 			<-bcast
 			if err != nil {
-				log.Printf("Job transmit error to %v@%v: %v", miner.Login, miner.IP, err)
+				log.Printf("Job transmit error to %v@%v: %v", miner.Id, miner.IP, err)
 				s.removeMiner(miner.Id)
 			} else {
 				s.setDeadline(miner.Session.conn)
@@ -140,4 +141,12 @@ func (s *StratumServer) refreshBlockTemplate(bcast bool) {
 	if newBlock && bcast {
 		s.broadcastNewJobs()
 	}
+}
+
+func extractWorkerId(loginWorkerPair string) string {
+	parts := strings.SplitN(loginWorkerPair, ".", 2)
+	if len(parts) > 1 {
+		return parts[1]
+	}
+	return defaultWorkerId
 }
