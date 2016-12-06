@@ -60,7 +60,8 @@ func (job *Job) submit(nonce string) bool {
 
 func NewMiner(login, pass string, diff int64, ip string) *Miner {
 	id := util.Random()
-	miner := &Miner{Id: id, Login: login, Pass: pass, Difficulty: diff, IP: ip}
+	shares := make(map[int64]int64)
+	miner := &Miner{Id: id, Login: login, Pass: pass, Difficulty: diff, IP: ip, shares: shares}
 	target, targetHex := util.GetTargetHex(diff)
 	miner.Target = target
 	miner.TargetHex = targetHex
@@ -104,16 +105,16 @@ func (m *Miner) getLastBeat() int64 {
 }
 
 func (m *Miner) storeShare(diff int64) {
-	now := util.MakeTimestamp()
+	now := util.MakeTimestamp() / 1000
 	m.Lock()
 	m.shares[now] += diff
 	m.Unlock()
 }
 
-func (m *Miner) hashrate(hashrateWindow time.Duration) float64 {
-	now := util.MakeTimestamp()
+func (m *Miner) hashrate(estimationWindow time.Duration) float64 {
+	now := util.MakeTimestamp() / 1000
 	totalShares := int64(0)
-	window := int64(hashrateWindow / time.Millisecond)
+	window := int64(estimationWindow / time.Second)
 	boundary := now - m.startedAt
 
 	if boundary > window {
@@ -122,7 +123,7 @@ func (m *Miner) hashrate(hashrateWindow time.Duration) float64 {
 
 	m.Lock()
 	for k, v := range m.shares {
-		if k < now-86400000 {
+		if k < now-86400 {
 			delete(m.shares, k)
 		} else if k >= now-window {
 			totalShares += v
@@ -171,8 +172,12 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 	}
 
 	hashDiff := util.GetHashDifficulty(hashBytes).Int64() // FIXME: Will return max int64 value if overflows
-	atomic.AddInt64(&s.roundShares, hashDiff)
+	atomic.AddInt64(&s.roundShares, e.config.Difficulty)
+	atomic.AddUint64(&m.validShares, 1)
+	m.storeShare(e.config.Difficulty)
+
 	block := hashDiff >= t.Difficulty
+
 	if block {
 		_, err := s.rpc.SubmitBlock(hex.EncodeToString(shareBuff))
 		if err != nil {

@@ -30,7 +30,7 @@ func (s *StratumServer) StatsIndex(w http.ResponseWriter, r *http.Request) {
 		stats["height"] = t.Height
 		stats["diff"] = t.Difficulty
 		roundShares := atomic.LoadInt64(&s.roundShares)
-		stats["variance"] = roundShares / t.Difficulty
+		stats["variance"] = float64(roundShares) / float64(t.Difficulty)
 		stats["template"] = true
 	}
 	json.NewEncoder(w).Encode(stats)
