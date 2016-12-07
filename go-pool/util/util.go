@@ -5,8 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"math/big"
-	"math/rand"
-	"strconv"
 	"time"
 	"unicode/utf8"
 
@@ -18,13 +16,6 @@ var Diff1 *big.Int
 func init() {
 	Diff1 = new(big.Int)
 	Diff1.SetString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16)
-}
-
-func Random() string {
-	min := int64(100000000000000)
-	max := int64(999999999999999)
-	n := rand.Int63n(max-min+1) + min
-	return strconv.FormatInt(n, 10)
 }
 
 func MakeTimestamp() int64 {

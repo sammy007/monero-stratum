@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"log"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -61,7 +62,8 @@ func (cs *Session) getJob(t *BlockTemplate) *JobReplyData {
 
 	extraNonce := atomic.AddUint32(&cs.endpoint.extraNonce, 1)
 	blob := t.nextBlob(extraNonce, cs.endpoint.instanceId)
-	job := &Job{id: util.Random(), extraNonce: extraNonce, height: t.height, difficulty: cs.difficulty}
+	id := atomic.AddUint64(&cs.endpoint.jobSequence, 1)
+	job := &Job{id: strconv.FormatUint(id, 10), extraNonce: extraNonce, height: t.height, difficulty: cs.difficulty}
 	job.submissions = make(map[string]struct{})
 	cs.pushJob(job)
 	reply := &JobReplyData{JobId: job.id, Blob: blob, Target: cs.targetHex}

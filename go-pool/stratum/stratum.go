@@ -35,9 +35,10 @@ type StratumServer struct {
 }
 
 type Endpoint struct {
-	config     *pool.Port
-	instanceId []byte
-	extraNonce uint32
+	config      *pool.Port
+	instanceId  []byte
+	extraNonce  uint32
+	jobSequence uint64
 }
 
 type Session struct {
