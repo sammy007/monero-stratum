@@ -1,8 +1,6 @@
 package util
 
 import (
-	"bytes"
-	"encoding/binary"
 	"encoding/hex"
 	"math/big"
 	"time"
@@ -22,24 +20,14 @@ func MakeTimestamp() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-func GetTargetHex(diff int64) (uint32, string) {
+func GetTargetHex(diff int64) string {
 	padded := make([]byte, 32)
 
-	diff2 := new(big.Int)
-	diff2.SetInt64(int64(diff))
-
-	diff3 := new(big.Int)
-	diff3 = diff3.Div(Diff1, diff2)
-
-	diffBuff := diff3.Bytes()
+	diffBuff := new(big.Int).Div(Diff1, big.NewInt(diff)).Bytes()
 	copy(padded[32-len(diffBuff):], diffBuff)
 	buff := padded[0:4]
-	var target uint32
-	targetBuff := bytes.NewReader(buff)
-	binary.Read(targetBuff, binary.LittleEndian, &target)
 	targetHex := hex.EncodeToString(reverse(buff))
-
-	return target, targetHex
+	return targetHex
 }
 
 func GetHashDifficulty(hashBytes []byte) *big.Int {

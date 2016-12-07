@@ -66,7 +66,7 @@ func (cs *Session) getJob(t *BlockTemplate) *JobReplyData {
 	job := &Job{id: strconv.FormatUint(id, 10), extraNonce: extraNonce, height: t.height, difficulty: cs.difficulty}
 	job.submissions = make(map[string]struct{})
 	cs.pushJob(job)
-	reply := &JobReplyData{JobId: job.id, Blob: blob, Target: cs.targetHex}
+	reply := &JobReplyData{JobId: job.id, Blob: blob, Target: cs.endpoint.targetHex}
 	return reply
 }
 

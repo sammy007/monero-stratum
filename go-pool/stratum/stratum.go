@@ -38,6 +38,7 @@ type Endpoint struct {
 	config      *pool.Port
 	instanceId  []byte
 	extraNonce  uint32
+	targetHex   string
 	jobSequence uint64
 }
 
@@ -50,8 +51,6 @@ type Session struct {
 	difficulty      int64
 	validJobs       []*Job
 	lastBlockHeight int64
-	target          uint32
-	targetHex       string
 }
 
 const (
@@ -127,6 +126,7 @@ func NewEndpoint(cfg *pool.Port) *Endpoint {
 	if err != nil {
 		log.Fatalf("Can't seed with random bytes: %v", err)
 	}
+	e.targetHex = util.GetTargetHex(e.config.Difficulty)
 	return e
 }
 
@@ -176,9 +176,6 @@ func (e *Endpoint) Listen(s *StratumServer) {
 }
 
 func (s *StratumServer) handleClient(cs *Session, e *Endpoint) {
-	_, targetHex := util.GetTargetHex(e.config.Difficulty)
-	cs.targetHex = targetHex
-
 	connbuff := bufio.NewReaderSize(cs.conn, MaxReqSize)
 	s.setDeadline(cs.conn)
 
