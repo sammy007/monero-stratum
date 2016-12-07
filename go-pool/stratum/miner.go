@@ -41,8 +41,7 @@ type Miner struct {
 func (job *Job) submit(nonce string) bool {
 	job.Lock()
 	defer job.Unlock()
-	_, exist := job.submissions[nonce]
-	if exist {
+	if _, exist := job.submissions[nonce]; exist {
 		return true
 	}
 	job.submissions[nonce] = struct{}{}
