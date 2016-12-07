@@ -20,9 +20,9 @@
         <div class="col-xs-6">
           <dl class="dl-horizontal">
             <dt>Hashrate</dt>
-            <dd><span class="badge alert-info">{{formatNumber hashrate maximumFractionDigits=4}}</span></dd>
+            <dd><span class="badge alert-info">{{formatNumber hashrate maximumFractionDigits=2}}</span></dd>
             <dt>Hashrate 24h</dt>
-            <dd><span class="badge alert-info">{{formatNumber hashrate24h maximumFractionDigits=4}}</span></dd>
+            <dd><span class="badge alert-info">{{formatNumber hashrate24h maximumFractionDigits=2}}</span></dd>
             <dt>Total Miners</dt>
             <dd><span class="badge alert-info">{{totalMiners}}</span></dd>
             <dt>Miners Online</dt>
@@ -49,7 +49,7 @@
           {{#if template}}
           <p>
             <strong>Block Height:</strong> <span class="label label-primary">{{height}}</span>
-            <strong>Difficulty:</strong> <span class="label label-primary">{{formatNumber diff maximumFractionDigits=4}}</span>
+            <strong>Difficulty:</strong> <span class="label label-primary">{{formatNumber diff}}</span>
             <strong>Prev. Hash:</strong> <span class="label label-primary">{{prevHash}}</span>
           </p>
           {{/if}}
@@ -131,8 +131,8 @@
                   &mdash;
                 {{/if}}
               </td>
-              <td>{{formatNumber hashrate maximumFractionDigits=4}}</td>
-              <td>{{formatNumber hashrate24h maximumFractionDigits=4}}</td>
+              <td>{{formatNumber hashrate maximumFractionDigits=2}}</td>
+              <td>{{formatNumber hashrate24h maximumFractionDigits=2}}</td>
               <td>{{formatRelative lastBeat now=../now}}</td>
               <td>{{formatNumber validShares}}</td>
               <td>{{formatNumber staleShares}}</td>
