@@ -7,22 +7,14 @@ import (
 )
 
 func TestGetTargetHex(t *testing.T) {
-	target, targetHex := GetTargetHex(500)
-	expectedTarget := uint32(1846706944)
+	targetHex := GetTargetHex(500)
 	expectedHex := "6e128300"
-	if target != expectedTarget {
-		t.Error("Invalid target")
-	}
 	if targetHex != expectedHex {
 		t.Error("Invalid targetHex")
 	}
 
-	target, targetHex = GetTargetHex(15000)
-	expectedTarget = uint32(2069758976)
+	targetHex = GetTargetHex(15000)
 	expectedHex = "7b5e0400"
-	if target != expectedTarget {
-		t.Error("Invalid target")
-	}
 	if targetHex != expectedHex {
 		t.Error("Invalid targetHex")
 	}
