@@ -235,7 +235,7 @@ func (cs *Session) handleMessage(s *StratumServer, e *Endpoint, req *JSONRpcReq)
 			log.Println("Unable to parse params")
 			return err
 		}
-		reply, errReply := s.handleLoginRPC(cs, e, &params)
+		reply, errReply := s.handleLoginRPC(cs, &params)
 		if errReply != nil {
 			return cs.sendError(req.Id, errReply, true)
 		}
@@ -247,7 +247,7 @@ func (cs *Session) handleMessage(s *StratumServer, e *Endpoint, req *JSONRpcReq)
 			log.Println("Unable to parse params")
 			return err
 		}
-		reply, errReply := s.handleGetJobRPC(cs, e, &params)
+		reply, errReply := s.handleGetJobRPC(cs, &params)
 		if errReply != nil {
 			return cs.sendError(req.Id, errReply, true)
 		}
@@ -259,13 +259,13 @@ func (cs *Session) handleMessage(s *StratumServer, e *Endpoint, req *JSONRpcReq)
 			log.Println("Unable to parse params")
 			return err
 		}
-		reply, errReply := s.handleSubmitRPC(cs, e, &params)
+		reply, errReply := s.handleSubmitRPC(cs, &params)
 		if errReply != nil {
 			return cs.sendError(req.Id, errReply, false)
 		}
 		return cs.sendResult(req.Id, &reply)
 	default:
-		errReply := s.handleUnknownRPC(cs, req)
+		errReply := s.handleUnknownRPC(req)
 		return cs.sendError(req.Id, errReply, true)
 	}
 }

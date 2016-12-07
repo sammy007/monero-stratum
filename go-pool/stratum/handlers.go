@@ -17,7 +17,7 @@ func init() {
 	noncePattern, _ = regexp.Compile("^[0-9a-f]{8}$")
 }
 
-func (s *StratumServer) handleLoginRPC(cs *Session, e *Endpoint, params *LoginParams) (*JobReply, *ErrorReply) {
+func (s *StratumServer) handleLoginRPC(cs *Session, params *LoginParams) (*JobReply, *ErrorReply) {
 	if !s.config.BypassAddressValidation && !util.ValidateAddress(params.Login, s.config.Address) {
 		return nil, &ErrorReply{Code: -1, Message: "Invalid address used for login"}
 	}
@@ -42,7 +42,7 @@ func (s *StratumServer) handleLoginRPC(cs *Session, e *Endpoint, params *LoginPa
 	return &JobReply{Id: id, Job: cs.getJob(t), Status: "OK"}, nil
 }
 
-func (s *StratumServer) handleGetJobRPC(cs *Session, e *Endpoint, params *GetJobParams) (*JobReplyData, *ErrorReply) {
+func (s *StratumServer) handleGetJobRPC(cs *Session, params *GetJobParams) (*JobReplyData, *ErrorReply) {
 	miner, ok := s.miners.Get(params.Id)
 	if !ok {
 		return nil, &ErrorReply{Code: -1, Message: "Unauthenticated"}
@@ -55,7 +55,7 @@ func (s *StratumServer) handleGetJobRPC(cs *Session, e *Endpoint, params *GetJob
 	return cs.getJob(t), nil
 }
 
-func (s *StratumServer) handleSubmitRPC(cs *Session, e *Endpoint, params *SubmitParams) (*SubmitReply, *ErrorReply) {
+func (s *StratumServer) handleSubmitRPC(cs *Session, params *SubmitParams) (*SubmitReply, *ErrorReply) {
 	miner, ok := s.miners.Get(params.Id)
 	if !ok {
 		return nil, &ErrorReply{Code: -1, Message: "Unauthenticated"}
@@ -84,14 +84,14 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, e *Endpoint, params *Submit
 		return nil, &ErrorReply{Code: -1, Message: "Block expired"}
 	}
 
-	validShare := miner.processShare(s, e, job, t, nonce, params.Result)
+	validShare := miner.processShare(s, cs.endpoint, job, t, nonce, params.Result)
 	if !validShare {
 		return nil, &ErrorReply{Code: -1, Message: "Low difficulty share"}
 	}
 	return &SubmitReply{Status: "OK"}, nil
 }
 
-func (s *StratumServer) handleUnknownRPC(cs *Session, req *JSONRpcReq) *ErrorReply {
+func (s *StratumServer) handleUnknownRPC(req *JSONRpcReq) *ErrorReply {
 	log.Printf("Unknown RPC method: %v", req)
 	return &ErrorReply{Code: -1, Message: "Invalid method"}
 }
