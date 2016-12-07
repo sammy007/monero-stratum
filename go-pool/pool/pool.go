@@ -39,6 +39,7 @@ type Upstream struct {
 }
 
 type Frontend struct {
+	Enabled  bool   `json:"enabled"`
 	Listen   string `json:"listen"`
 	Login    string `json:"login"`
 	Password string `json:"password"`

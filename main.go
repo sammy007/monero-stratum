@@ -31,7 +31,9 @@ func startStratum() {
 	}
 
 	s := stratum.NewStratum(&cfg)
-	go startFrontend(&cfg, s)
+	if cfg.Frontend.Enabled {
+		startFrontend(&cfg, s)
+	}
 	s.Listen()
 }
 
