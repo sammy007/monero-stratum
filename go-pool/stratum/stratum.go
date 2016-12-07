@@ -198,7 +198,7 @@ func (s *StratumServer) handleClient(cs *Session, e *Endpoint) {
 			var req JSONRpcReq
 			err = json.Unmarshal(data, &req)
 			if err != nil {
-				log.Printf("Malformed request from: %v", cs.ip, err)
+				log.Printf("Malformed request from %s: %v", cs.ip, err)
 				break
 			}
 			s.setDeadline(cs.conn)
