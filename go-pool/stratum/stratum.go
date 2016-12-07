@@ -86,15 +86,15 @@ func NewStratum(cfg *pool.Config) *StratumServer {
 	luckLargeWindow, _ := time.ParseDuration(cfg.LargeLuckWindow)
 	stratum.luckLargeWindow = int64(luckLargeWindow / time.Millisecond)
 
-	// Init block template
-	stratum.refreshBlockTemplate(false)
-
 	refreshIntv, _ := time.ParseDuration(cfg.BlockRefreshInterval)
 	refreshTimer := time.NewTimer(refreshIntv)
 	log.Printf("Set block refresh every %v", refreshIntv)
 
 	checkIntv, _ := time.ParseDuration(cfg.UpstreamCheckInterval)
 	checkTimer := time.NewTimer(checkIntv)
+
+	// Init block template
+	stratum.refreshBlockTemplate(false)
 
 	go func() {
 		for {
