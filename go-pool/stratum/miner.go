@@ -174,13 +174,19 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 				convertedBlob = cnutil.ConvertBlob(shareBuff)
 			}
 			blockFastHash := hex.EncodeToString(hashing.FastHash(convertedBlob))
-			// Immediately refresh current BT and send new jobs
-			s.refreshBlockTemplate(true)
+			now := util.MakeTimestamp()
+			roundShares := atomic.SwapInt64(&s.roundShares, 0)
+			ratio := float64(roundShares) / float64(t.difficulty)
+			s.blocksMu.Lock()
+			s.blockStats[now] = ratio
+			s.blocksMu.Unlock()
 			atomic.AddUint64(&m.accepts, 1)
 			atomic.AddUint64(&r.Accepts, 1)
-			atomic.StoreInt64(&s.roundShares, 0)
-			atomic.StoreInt64(&r.LastSubmissionAt, util.MakeTimestamp())
-			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.height, m.id, m.ip)
+			atomic.StoreInt64(&r.LastSubmissionAt, now)
+			log.Printf("Block %s found at height %d by miner %v@%v with ratio %.4f", blockFastHash[0:6], t.height, m.id, m.ip, ratio)
+
+			// Immediately refresh current BT and send new jobs
+			s.refreshBlockTemplate(true)
 		}
 	} else if hashDiff < job.difficulty {
 		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.id, m.ip)

@@ -58,7 +58,7 @@ const (
 )
 
 func NewStratum(cfg *pool.Config) *StratumServer {
-	stratum := &StratumServer{config: cfg}
+	stratum := &StratumServer{config: cfg, blockStats: make(map[int64]float64)}
 
 	stratum.upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
 	for i, v := range cfg.Upstream {
