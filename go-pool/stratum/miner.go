@@ -28,7 +28,6 @@ type Miner struct {
 	id            string
 	ip            string
 	lastBeat      int64
-	endpoint      *Endpoint
 	startedAt     int64
 	validShares   uint64
 	invalidShares uint64
