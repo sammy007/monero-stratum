@@ -94,7 +94,7 @@ func NewStratum(cfg *pool.Config) *StratumServer {
 	checkTimer := time.NewTimer(checkIntv)
 
 	// Init block template
-	stratum.refreshBlockTemplate(false)
+	go stratum.refreshBlockTemplate(false)
 
 	go func() {
 		for {
