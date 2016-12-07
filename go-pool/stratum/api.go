@@ -38,11 +38,11 @@ func (s *StratumServer) StatsIndex(w http.ResponseWriter, r *http.Request) {
 	stats["luck"] = s.getLuckStats()
 
 	if t := s.currentBlockTemplate(); t != nil {
-		stats["height"] = t.Height
-		stats["diff"] = t.Difficulty
+		stats["height"] = t.height
+		stats["diff"] = t.difficulty
 		roundShares := atomic.LoadInt64(&s.roundShares)
-		stats["variance"] = float64(roundShares) / float64(t.Difficulty)
-		stats["prevHash"] = t.PrevHash[0:8]
+		stats["variance"] = float64(roundShares) / float64(t.difficulty)
+		stats["prevHash"] = t.prevHash[0:8]
 		stats["template"] = true
 	}
 	json.NewEncoder(w).Encode(stats)

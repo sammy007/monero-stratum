@@ -10,21 +10,21 @@ import (
 )
 
 type BlockTemplate struct {
-	Difficulty     int64
-	Height         int64
-	ReservedOffset int
-	PrevHash       string
-	Buffer         []byte
+	difficulty     int64
+	height         int64
+	reservedOffset int
+	prevHash       string
+	buffer         []byte
 }
 
 func (b *BlockTemplate) nextBlob(extraNonce uint32, instanceId []byte) string {
 	extraBuff := new(bytes.Buffer)
 	binary.Write(extraBuff, binary.BigEndian, extraNonce)
 
-	blobBuff := make([]byte, len(b.Buffer))
-	copy(blobBuff, b.Buffer)
-	copy(blobBuff[b.ReservedOffset+4:b.ReservedOffset+7], instanceId)
-	copy(blobBuff[b.ReservedOffset:], extraBuff.Bytes())
+	blobBuff := make([]byte, len(b.buffer))
+	copy(blobBuff, b.buffer)
+	copy(blobBuff[b.reservedOffset+4:b.reservedOffset+7], instanceId)
+	copy(blobBuff[b.reservedOffset:], extraBuff.Bytes())
 	blob := cnutil.ConvertBlob(blobBuff)
 	return hex.EncodeToString(blob)
 }
@@ -38,9 +38,9 @@ func (s *StratumServer) fetchBlockTemplate() bool {
 	}
 	t := s.currentBlockTemplate()
 
-	if t != nil && t.PrevHash == reply.PrevHash {
+	if t != nil && t.prevHash == reply.PrevHash {
 		// Fallback to height comparison
-		if len(reply.PrevHash) == 0 && reply.Height > t.Height {
+		if len(reply.PrevHash) == 0 && reply.Height > t.height {
 			log.Printf("New block to mine at height %v, diff: %v", reply.Height, reply.Difficulty)
 		} else {
 			return false
@@ -49,12 +49,12 @@ func (s *StratumServer) fetchBlockTemplate() bool {
 		log.Printf("New block to mine on %s at height %v, diff: %v, prev_hash: %s", r.Name, reply.Height, reply.Difficulty, reply.PrevHash)
 	}
 	newTemplate := BlockTemplate{
-		Difficulty:     reply.Difficulty,
-		Height:         reply.Height,
-		PrevHash:       reply.PrevHash,
-		ReservedOffset: reply.ReservedOffset,
+		difficulty:     reply.Difficulty,
+		height:         reply.Height,
+		prevHash:       reply.PrevHash,
+		reservedOffset: reply.ReservedOffset,
 	}
-	newTemplate.Buffer, _ = hex.DecodeString(reply.Blob)
+	newTemplate.buffer, _ = hex.DecodeString(reply.Blob)
 	s.blockTemplate.Store(&newTemplate)
 	return true
 }

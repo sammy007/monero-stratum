@@ -55,15 +55,15 @@ func NewMiner(id string, ip string) *Miner {
 }
 
 func (cs *Session) getJob(t *BlockTemplate) *JobReplyData {
-	height := atomic.SwapInt64(&cs.lastBlockHeight, t.Height)
+	height := atomic.SwapInt64(&cs.lastBlockHeight, t.height)
 
-	if height == t.Height {
+	if height == t.height {
 		return &JobReplyData{}
 	}
 
 	extraNonce := atomic.AddUint32(&cs.endpoint.extraNonce, 1)
 	blob := t.nextBlob(extraNonce, cs.endpoint.instanceId)
-	job := &Job{id: util.Random(), extraNonce: extraNonce, height: t.Height, difficulty: cs.difficulty}
+	job := &Job{id: util.Random(), extraNonce: extraNonce, height: t.height, difficulty: cs.difficulty}
 	job.submissions = make(map[string]struct{})
 	cs.pushJob(job)
 	reply := &JobReplyData{JobId: job.id, Blob: blob, Target: cs.targetHex}
@@ -132,13 +132,13 @@ func (m *Miner) hashrate(estimationWindow time.Duration) float64 {
 func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTemplate, nonce string, result string) bool {
 	r := s.rpc()
 
-	shareBuff := make([]byte, len(t.Buffer))
-	copy(shareBuff, t.Buffer)
-	copy(shareBuff[t.ReservedOffset+4:t.ReservedOffset+7], e.instanceId)
+	shareBuff := make([]byte, len(t.buffer))
+	copy(shareBuff, t.buffer)
+	copy(shareBuff[t.reservedOffset+4:t.reservedOffset+7], e.instanceId)
 
 	extraBuff := new(bytes.Buffer)
 	binary.Write(extraBuff, binary.BigEndian, job.extraNonce)
-	copy(shareBuff[t.ReservedOffset:], extraBuff.Bytes())
+	copy(shareBuff[t.reservedOffset:], extraBuff.Bytes())
 
 	nonceBuff, _ := hex.DecodeString(nonce)
 	copy(shareBuff[39:], nonceBuff)
@@ -163,14 +163,14 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 	atomic.AddUint64(&m.validShares, 1)
 	m.storeShare(e.config.Difficulty)
 
-	block := hashDiff >= t.Difficulty
+	block := hashDiff >= t.difficulty
 
 	if block {
 		_, err := r.SubmitBlock(hex.EncodeToString(shareBuff))
 		if err != nil {
 			atomic.AddUint64(&m.rejects, 1)
 			atomic.AddUint64(&r.Rejects, 1)
-			log.Printf("Block submission failure at height %v: %v", t.Height, err)
+			log.Printf("Block submission failure at height %v: %v", t.height, err)
 		} else {
 			if len(convertedBlob) == 0 {
 				convertedBlob = cnutil.ConvertBlob(shareBuff)
@@ -181,7 +181,7 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 			atomic.AddUint64(&m.accepts, 1)
 			atomic.AddUint64(&r.Accepts, 1)
 			atomic.StoreInt64(&r.LastSubmissionAt, util.MakeTimestamp())
-			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.Height, m.id, m.ip)
+			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.height, m.id, m.ip)
 		}
 	} else if hashDiff < job.difficulty {
 		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.id, m.ip)
