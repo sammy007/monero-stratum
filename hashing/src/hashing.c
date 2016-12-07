@@ -1,6 +1,3 @@
-#include <assert.h>
-#define static_assert _Static_assert
-
 #include "crypto/hash-ops.h"
 
 void cryptonight_hash(const char* input, char* output, uint32_t len) {
