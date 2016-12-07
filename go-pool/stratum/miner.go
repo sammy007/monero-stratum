@@ -25,11 +25,10 @@ type Job struct {
 
 type Miner struct {
 	sync.RWMutex
-	Id       string
-	IP       string
-	LastBeat int64
-	Endpoint *Endpoint
-
+	id            string
+	ip            string
+	lastBeat      int64
+	endpoint      *Endpoint
 	startedAt     int64
 	validShares   uint64
 	invalidShares uint64
@@ -52,7 +51,7 @@ func (job *Job) submit(nonce string) bool {
 
 func NewMiner(id string, ip string) *Miner {
 	shares := make(map[int64]int64)
-	return &Miner{Id: id, IP: ip, shares: shares}
+	return &Miner{id: id, ip: ip, shares: shares}
 }
 
 func (cs *Session) getJob(t *BlockTemplate) *JobReplyData {
@@ -94,11 +93,11 @@ func (cs *Session) findJob(id string) *Job {
 
 func (m *Miner) heartbeat() {
 	now := util.MakeTimestamp()
-	atomic.StoreInt64(&m.LastBeat, now)
+	atomic.StoreInt64(&m.lastBeat, now)
 }
 
 func (m *Miner) getLastBeat() int64 {
-	return atomic.LoadInt64(&m.LastBeat)
+	return atomic.LoadInt64(&m.lastBeat)
 }
 
 func (m *Miner) storeShare(diff int64) {
@@ -154,7 +153,7 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 	}
 
 	if !s.config.BypassShareValidation && hex.EncodeToString(hashBytes) != result {
-		log.Printf("Bad hash from miner %v@%v", m.Id, m.IP)
+		log.Printf("Bad hash from miner %v@%v", m.id, m.ip)
 		atomic.AddUint64(&m.invalidShares, 1)
 		return false
 	}
@@ -182,10 +181,10 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 			atomic.AddUint64(&m.accepts, 1)
 			atomic.AddUint64(&r.Accepts, 1)
 			atomic.StoreInt64(&r.LastSubmissionAt, util.MakeTimestamp())
-			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.Height, m.Id, m.IP)
+			log.Printf("Block %v found at height %v by miner %v@%v", blockFastHash[0:6], t.Height, m.id, m.ip)
 		}
 	} else if hashDiff < job.difficulty {
-		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.Id, m.IP)
+		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.id, m.ip)
 		atomic.AddUint64(&m.invalidShares, 1)
 		return false
 	}

@@ -85,7 +85,7 @@ func (s *StratumServer) collectMinersStats() (float64, float64, int, []interface
 		stats["accepts"] = atomic.LoadUint64(&m.Val.accepts)
 		stats["rejects"] = atomic.LoadUint64(&m.Val.rejects)
 		if !s.config.Frontend.HideIP {
-			stats["ip"] = m.Val.IP
+			stats["ip"] = m.Val.ip
 		}
 
 		if now-lastBeat > (int64(s.timeout/2) / 1000000) {

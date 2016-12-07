@@ -322,7 +322,7 @@ func (s *StratumServer) isActive(cs *Session) bool {
 }
 
 func (s *StratumServer) registerMiner(miner *Miner) {
-	s.miners.Set(miner.Id, miner)
+	s.miners.Set(miner.id, miner)
 }
 
 func (s *StratumServer) removeMiner(id string) {
