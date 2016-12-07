@@ -1,19 +1,23 @@
 # go-cryptonote-pool
 
-High performance CryptoNote mining stratum written in Golang.
+High performance CryptoNote mining stratum with Web-interface written in Golang.
 
 **Stratum feature list:**
 
+* Be your own pool
+* Rigs availability monitoring
+* Keep track of accepts, rejects, blocks stats
+* Easy detection of sick rigs
+* Daemon failover list
 * Concurrent shares processing
-* AES-NI enabled share validation code with fallback to slow implementation
-* Integrated NewRelic performance monitoring plugin
+* Beautiful Web-interface
 
 ## Installation
 
 Dependencies:
 
   * go-1.6
-  * Everything required to build monero
+  * Everything required to build Monero
   * Monero >= **v0.10.0**
 
 ### Linux
@@ -77,56 +81,66 @@ Configuration is self-describing, just copy *config.example.json* to *config.jso
 
 ```javascript
 {
-    // Address to where mined blocks will rain
-    "address": "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em",
-    // Don't validate login, useful for other CN coins
-    "bypassAddressValidation": false,
-    // Don't validate shares for efficiency
-    "bypassShareValidation": false,
+  // Address for block rewards
+  "address": "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em",
+  // Don't validate address
+  "bypassAddressValidation": true,
+  // Don't validate shares
+  "bypassShareValidation": true,
 
-    "threads": 2,
+  "threads": 2,
 
-    // Mining endpoints
-    "stratum": {
-        // TCP timeout for miner, better keep default
-        "timeout": "15m",
-        // Interval to poll monero node for new jobs
-        "blockRefreshInterval": "1s",
+  "estimationWindow": "15m",
+  "luckWindow": "24h",
+  "largeLuckWindow": "72h",
 
-        "listen": [
-            {
-                "host": "0.0.0.0",
-                "port": 1111,
-                // Stratum port static difficulty
-                "diff": 5000,
-                "maxConn": 32768
-            },
-            {
-                "host": "0.0.0.0",
-                "port": 3333,
-                "diff": 10000,
-                "maxConn": 32768
-            }
-        ]
-    },
+  // Interval to poll daemon for new jobs
+  "blockRefreshInterval": "1s",
 
-    // Monero daemon connection options
-    "daemon": {
-        "host": "127.0.0.1",
-        // Monero RPC port, default is 18081
-        "port": 18081,
-        "timeout": "10s"
+  "stratum": {
+    // Socket timeout
+    "timeout": "15m",
+
+    "listen": [
+      {
+        "host": "0.0.0.0",
+        "port": 1111,
+        "diff": 5000,
+        "maxConn": 32768
+      },
+      {
+        "host": "0.0.0.0",
+        "port": 3333,
+        "diff": 10000,
+        "maxConn": 32768
+      }
+    ]
+  },
+
+  "frontend": {
+    "enabled": true,
+    "listen": "0.0.0.0:8082",
+    "login": "admin",
+    "password": "",
+    "hideIP": false
+  },
+
+  "upstreamCheckInterval": "5s",
+
+  "upstream": [
+    {
+      "name": "Main",
+      "host": "127.0.0.1",
+      "port": 18081,
+      "timeout": "10s"
     }
+  ]
 }
 ```
 
 ### Private Pool Guidelines
 
 For personal private pool you can use [DigitalOcean](https://www.digitalocean.com/?refcode=2a6767e6285f) droplet. With recent blockchain-db merged into Monero it's ok to run it even on 5 USD plan. You will receive 10 USD free credit there.
-
-### TODO
-
-In-RAM stats with a simple self hosted frontend.
 
 ### Donations
 
