@@ -81,6 +81,7 @@ func (s *StratumServer) collectMinersStats() (float64, float64, int, []interface
 		stats["hashrate24h"] = hashrate24h
 		stats["lastBeat"] = lastBeat
 		stats["validShares"] = atomic.LoadUint64(&m.Val.validShares)
+		stats["staleShares"] = atomic.LoadUint64(&m.Val.staleShares)
 		stats["invalidShares"] = atomic.LoadUint64(&m.Val.invalidShares)
 		stats["accepts"] = atomic.LoadUint64(&m.Val.accepts)
 		stats["rejects"] = atomic.LoadUint64(&m.Val.rejects)

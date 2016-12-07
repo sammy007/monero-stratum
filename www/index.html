@@ -108,6 +108,7 @@
               <th>HR 24h</th>
               <th>Last Beat</th>
               <th>Accepted</th>
+              <th>Stale</th>
               <th>Rejected</th>
               <th>Blocks Accepted</th>
               <th>Blocks Rejected</th>
@@ -134,6 +135,7 @@
               <td>{{formatNumber hashrate24h maximumFractionDigits=4}}</td>
               <td>{{formatRelative lastBeat now=../now}}</td>
               <td>{{formatNumber validShares}}</td>
+              <td>{{formatNumber staleShares}}</td>
               <td><strong>{{formatNumber invalidShares}}</strong></td>
               <td>{{formatNumber accepts}}</td>
               <td>{{formatNumber rejects}}</td>
