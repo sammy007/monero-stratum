@@ -9,11 +9,12 @@ import (
 	"../../cnutil"
 )
 
-var Diff1 *big.Int
+var Diff1 = StringToBig("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
 
-func init() {
-	Diff1 = new(big.Int)
-	Diff1.SetString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16)
+func StringToBig(h string) *big.Int {
+	n := new(big.Int)
+	n.SetString(h, 0)
+	return n
 }
 
 func MakeTimestamp() int64 {
