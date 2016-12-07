@@ -178,7 +178,7 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 			if len(convertedBlob) == 0 {
 				convertedBlob = cnutil.ConvertBlob(shareBuff)
 			}
-			blockFastHash := hex.EncodeToString(hashing.FastHash(convertedBlob))
+			blockFastHash := hex.EncodeToString(hashing.Hash(convertedBlob, true))
 			now := util.MakeTimestamp()
 			roundShares := atomic.SwapInt64(&s.roundShares, 0)
 			ratio := float64(roundShares) / float64(t.difficulty)

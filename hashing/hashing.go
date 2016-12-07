@@ -17,7 +17,3 @@ func Hash(blob []byte, fast bool) []byte {
 	}
 	return output
 }
-
-func FastHash(blob []byte) []byte {
-	return Hash(append([]byte{byte(len(blob))}, blob...), true)
-}
