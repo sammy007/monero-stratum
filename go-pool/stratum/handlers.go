@@ -18,7 +18,9 @@ func init() {
 }
 
 func (s *StratumServer) handleLoginRPC(cs *Session, params *LoginParams) (*JobReply, *ErrorReply) {
-	if !s.config.BypassAddressValidation && !util.ValidateAddress(params.Login, s.config.Address) {
+	address, id := extractWorkerId(params.Login)
+	if !s.config.BypassAddressValidation && !util.ValidateAddress(address, s.config.Address) {
+		log.Printf("Invalid address %s used for login by %s", address, cs.ip)
 		return nil, &ErrorReply{Code: -1, Message: "Invalid address used for login"}
 	}
 
@@ -27,7 +29,6 @@ func (s *StratumServer) handleLoginRPC(cs *Session, params *LoginParams) (*JobRe
 		return nil, &ErrorReply{Code: -1, Message: "Job not ready"}
 	}
 
-	id := extractWorkerId(params.Login)
 	miner, ok := s.miners.Get(id)
 	if !ok {
 		miner = NewMiner(id, cs.ip)
@@ -132,10 +133,10 @@ func (s *StratumServer) refreshBlockTemplate(bcast bool) {
 	}
 }
 
-func extractWorkerId(loginWorkerPair string) string {
+func extractWorkerId(loginWorkerPair string) (string, string) {
 	parts := strings.SplitN(loginWorkerPair, ".", 2)
 	if len(parts) > 1 {
-		return parts[1]
+		return parts[0], parts[1]
 	}
-	return defaultWorkerId
+	return loginWorkerPair, defaultWorkerId
 }
