@@ -48,15 +48,6 @@ func ValidateAddress(addy string, poolAddy string) bool {
 	return cnutil.ValidateAddress(addy)
 }
 
-func StringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
 func reverse(src []byte) []byte {
 	dst := make([]byte, len(src))
 	for i := len(src); i > 0; i-- {
