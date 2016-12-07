@@ -20,7 +20,6 @@ type Job struct {
 	id          string
 	extraNonce  uint32
 	height      int64
-	difficulty  int64
 	submissions map[string]struct{}
 }
 
@@ -63,7 +62,11 @@ func (cs *Session) getJob(t *BlockTemplate) *JobReplyData {
 	extraNonce := atomic.AddUint32(&cs.endpoint.extraNonce, 1)
 	blob := t.nextBlob(extraNonce, cs.endpoint.instanceId)
 	id := atomic.AddUint64(&cs.endpoint.jobSequence, 1)
-	job := &Job{id: strconv.FormatUint(id, 10), extraNonce: extraNonce, height: t.height, difficulty: cs.difficulty}
+	job := &Job{
+		id:         strconv.FormatUint(id, 10),
+		extraNonce: extraNonce,
+		height:     t.height,
+	}
 	job.submissions = make(map[string]struct{})
 	cs.pushJob(job)
 	reply := &JobReplyData{JobId: job.id, Blob: blob, Target: cs.endpoint.targetHex}
@@ -190,12 +193,11 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 			// Immediately refresh current BT and send new jobs
 			s.refreshBlockTemplate(true)
 		}
-	} else if hashDiff < job.difficulty {
+	} else if hashDiff < e.config.Difficulty {
 		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.id, m.ip)
 		atomic.AddUint64(&m.invalidShares, 1)
 		return false
 	}
-
 	log.Printf("Valid share at difficulty %v/%v", e.config.Difficulty, hashDiff)
 	return true
 }

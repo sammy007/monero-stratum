@@ -48,7 +48,6 @@ type Session struct {
 	enc             *json.Encoder
 	ip              string
 	endpoint        *Endpoint
-	difficulty      int64
 	validJobs       []*Job
 	lastBlockHeight int64
 }
