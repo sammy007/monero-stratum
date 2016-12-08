@@ -173,7 +173,7 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 		if err != nil {
 			atomic.AddUint64(&m.rejects, 1)
 			atomic.AddUint64(&r.Rejects, 1)
-			log.Printf("Block submission failure at height %v: %v", t.height, err)
+			log.Printf("Block rejected at height %d: %v", t.height, err)
 		} else {
 			if len(convertedBlob) == 0 {
 				convertedBlob = cnutil.ConvertBlob(shareBuff)
