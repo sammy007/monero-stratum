@@ -138,10 +138,6 @@ Configuration is self-describing, just copy *config.example.json* to *config.jso
 }
 ```
 
-### Private Pool Guidelines
-
-For personal private pool you can use [DigitalOcean](https://www.digitalocean.com/?refcode=2a6767e6285f) droplet. With recent blockchain-db merged into Monero it's ok to run it even on 5 USD plan. You will receive 10 USD free credit there.
-
 ### Donations
 
 * **BTC**: [16bBz4wZPh7kV53nFMf8LmtJHE2rHsADB2](https://blockchain.info/address/16bBz4wZPh7kV53nFMf8LmtJHE2rHsADB2)
