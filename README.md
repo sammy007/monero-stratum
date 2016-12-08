@@ -24,7 +24,7 @@ Dependencies:
 
 Use Ubuntu 16.04 LTS.
 
-Compile Monero source (with libraries option):
+Compile Monero source (with shared libraries option):
 
     cmake -DBUILD_SHARED_LIBS=1 .
     make
