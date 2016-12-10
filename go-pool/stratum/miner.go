@@ -132,12 +132,12 @@ func (m *Miner) hashrate(estimationWindow time.Duration) float64 {
 	return float64(totalShares) / float64(boundary)
 }
 
-func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTemplate, nonce string, result string) bool {
+func (m *Miner) processShare(s *StratumServer, cs *Session, job *Job, t *BlockTemplate, nonce string, result string) bool {
 	r := s.rpc()
 
 	shareBuff := make([]byte, len(t.buffer))
 	copy(shareBuff, t.buffer)
-	copy(shareBuff[t.reservedOffset+4:t.reservedOffset+7], e.instanceId)
+	copy(shareBuff[t.reservedOffset+4:t.reservedOffset+7], cs.endpoint.instanceId)
 
 	extraBuff := new(bytes.Buffer)
 	binary.Write(extraBuff, binary.BigEndian, job.extraNonce)
@@ -156,15 +156,15 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 	}
 
 	if !s.config.BypassShareValidation && hex.EncodeToString(hashBytes) != result {
-		log.Printf("Bad hash from miner %v@%v", m.id, m.ip)
+		log.Printf("Bad hash from miner %v@%v", m.id, cs.ip)
 		atomic.AddUint64(&m.invalidShares, 1)
 		return false
 	}
 
 	hashDiff := util.GetHashDifficulty(hashBytes).Int64() // FIXME: Will return max int64 value if overflows
-	atomic.AddInt64(&s.roundShares, e.config.Difficulty)
+	atomic.AddInt64(&s.roundShares, cs.endpoint.config.Difficulty)
 	atomic.AddUint64(&m.validShares, 1)
-	m.storeShare(e.config.Difficulty)
+	m.storeShare(cs.endpoint.config.Difficulty)
 
 	block := hashDiff >= t.difficulty
 
@@ -188,16 +188,16 @@ func (m *Miner) processShare(s *StratumServer, e *Endpoint, job *Job, t *BlockTe
 			atomic.AddUint64(&m.accepts, 1)
 			atomic.AddUint64(&r.Accepts, 1)
 			atomic.StoreInt64(&r.LastSubmissionAt, now)
-			log.Printf("Block %s found at height %d by miner %v@%v with ratio %.4f", blockFastHash[0:6], t.height, m.id, m.ip, ratio)
+			log.Printf("Block %s found at height %d by miner %v@%v with ratio %.4f", blockFastHash[0:6], t.height, m.id, cs.ip, ratio)
 
 			// Immediately refresh current BT and send new jobs
 			s.refreshBlockTemplate(true)
 		}
-	} else if hashDiff < e.config.Difficulty {
-		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.id, m.ip)
+	} else if hashDiff < cs.endpoint.config.Difficulty {
+		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.id, cs.ip)
 		atomic.AddUint64(&m.invalidShares, 1)
 		return false
 	}
-	log.Printf("Valid share at difficulty %v/%v", e.config.Difficulty, hashDiff)
+	log.Printf("Valid share at difficulty %v/%v", cs.endpoint.config.Difficulty, hashDiff)
 	return true
 }
