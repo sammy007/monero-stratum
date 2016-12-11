@@ -4,7 +4,9 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"sync"
 	"sync/atomic"
+	"time"
 
 	"../util"
 )
@@ -106,24 +108,34 @@ func (s *StratumServer) broadcastNewJobs() {
 	defer s.sessionsMu.RUnlock()
 	count := len(s.sessions)
 	log.Printf("Broadcasting new jobs to %d miners", count)
-	bcast := make(chan int, 1024*16)
-	n := 0
+	start := time.Now()
+	slots := make(chan bool, 1024*16)
+	var ok, fails int64
+	var wg sync.WaitGroup
 
 	for m := range s.sessions {
-		n++
-		bcast <- n
+		wg.Add(1)
+		slots <- true
+
 		go func(cs *Session) {
 			reply := cs.getJob(t)
 			err := cs.pushMessage("job", &reply)
-			<-bcast
+			<-slots
+
 			if err != nil {
 				log.Printf("Job transmit error to %s: %v", cs.ip, err)
+				atomic.AddInt64(&fails, 1)
+				wg.Done()
 				s.removeSession(cs)
 			} else {
+				atomic.AddInt64(&ok, 1)
 				s.setDeadline(cs.conn)
+				wg.Done()
 			}
 		}(m)
 	}
+	wg.Wait()
+	log.Printf("Done jobs broadcast in %s for %d/%d/%d miners", time.Since(start), count, ok, fails)
 }
 
 func (s *StratumServer) refreshBlockTemplate(bcast bool) {
