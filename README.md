@@ -26,6 +26,8 @@ Use Ubuntu 16.04 LTS.
 
 Compile Monero source (with shared libraries option):
 
+    git clone https://github.com/monero-project/monero.git
+    cd monero
     cmake -DBUILD_SHARED_LIBS=1 .
     make
 
@@ -54,6 +56,8 @@ Install Golang and packages packages:
 
 Compile Monero source:
 
+    git clone https://github.com/monero-project/monero.git
+    cd monero
     cmake .
     make
 
