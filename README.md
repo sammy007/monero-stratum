@@ -1,4 +1,4 @@
-# go-cryptonote-pool
+# monero-stratum
 
 High performance CryptoNote mining stratum with Web-interface written in Golang.
 
@@ -12,7 +12,7 @@ High performance CryptoNote mining stratum with Web-interface written in Golang.
 * Concurrent shares processing
 * Beautiful Web-interface
 
-![](https://cdn.pbrd.co/images/jRPcZhZdz.png)
+![](https://cdn.pbrd.co/images/jRU3qJj83.png)
 
 ## Installation
 
