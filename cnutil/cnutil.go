@@ -11,8 +11,7 @@ func ConvertBlob(blob []byte) []byte {
 	output := make([]byte, 76)
 	out := (*C.char)(unsafe.Pointer(&output[0]))
 
-	input := C.CString(string(blob))
-	defer C.free(unsafe.Pointer(input))
+	input := (*C.char)(unsafe.Pointer(&blob[0]))
 
 	size := (C.uint32_t)(len(blob))
 	C.convert_blob(input, size, out)
