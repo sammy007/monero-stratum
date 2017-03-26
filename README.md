@@ -20,7 +20,7 @@ Dependencies:
 
   * go-1.6
   * Everything required to build Monero
-  * Monero >= **v0.10.0**
+  * Monero >= **v0.10.3**
 
 ### Linux
 
