@@ -42,6 +42,10 @@ span.logo-3 {
   font-weight: 100;
 }
 
+.hash {
+  font-family: 'Inconsolata', monospace;
+}
+
 /* Custom page footer */
 .footer {
   padding-top: 15px;

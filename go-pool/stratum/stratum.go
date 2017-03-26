@@ -26,12 +26,18 @@ type StratumServer struct {
 	timeout          time.Duration
 	estimationWindow time.Duration
 	blocksMu         sync.RWMutex
-	blockStats       map[int64]float64
+	blockStats       map[int64]blockEntry
 	luckWindow       int64
 	luckLargeWindow  int64
 	roundShares      int64
 	sessionsMu       sync.RWMutex
 	sessions         map[*Session]struct{}
+}
+
+type blockEntry struct {
+	height   int64
+	hash     string
+	variance float64
 }
 
 type Endpoint struct {
@@ -57,7 +63,7 @@ const (
 )
 
 func NewStratum(cfg *pool.Config) *StratumServer {
-	stratum := &StratumServer{config: cfg, blockStats: make(map[int64]float64)}
+	stratum := &StratumServer{config: cfg, blockStats: make(map[int64]blockEntry)}
 
 	stratum.upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
 	for i, v := range cfg.Upstream {

@@ -146,9 +146,54 @@
         </div>
       </div>
     </script>
+    <script id="blocks-template" type="text/x-handlebars-template">
+      <div class="row marketing">
+        <div class="col-xs-12">
+          <p>
+            <strong>Blocks {{luck.window}}:</strong> <span class="label label-primary">{{formatNumber luck.blocksCount}}</span>
+            <strong>Shares/Diff {{luck.window}}:</strong>
+            <span class="label label-primary">{{formatNumber luck.variance style="percent" minimumFractionDigits=2 maximumFractionDigits=2}}</span>
+            <strong>Blocks {{luck.largeWindow}}:</strong> <span class="label label-primary">{{formatNumber luck.totalBlocksCount}}</span>
+            <strong>Shares/Diff {{luck.largeWindow}}:</strong>
+            <span class="label label-primary">{{formatNumber luck.totalVariance style="percent" minimumFractionDigits=2 maximumFractionDigits=2}}</span>
+            {{#if template}}
+            <strong>Round Progress:</strong>
+            <span class="label label-primary">{{formatNumber variance style="percent" minimumFractionDigits=2 maximumFractionDigits=2}}</span>
+            {{/if}}
+          </p>
+        </div>
+        <div id="blocks" class="col-xs-12">
+          <h4>Blocks</h4>
+          <div class="table-responsive">
+            <table class="table table-condensed table-striped">
+              <tr>
+                <th>Height</th>
+                <th>Time</th>
+                <th>Hash</th>
+                <th>Shares/Diff</th>
+              </tr>
+              {{#each blocks}}
+              <tr>
+                <td>{{formatNumber height}}</td>
+                <td>{{formatDate timestamp year="numeric" month="numeric" day="numeric" hour="numeric" minute="numeric"}}</td>
+                <td class="hash">{{hash}}</td>
+                <td>{{formatNumber variance style="percent" minimumFractionDigits=2 maximumFractionDigits=2}}</td>
+              </tr>
+              {{/each}}
+            </table>
+          </div>
+        </div>
+      </div>
+    </script>
 
     <div class="container">
       <div class="header clearfix">
+        <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation"><a href="#" id="homeTab">Home</a></li>
+            <li role="presentation"><a href="#blocks" id="blocksTab">Blocks</a></li>
+          </ul>
+        </nav>
         <h3 class="text-muted">MoneroProxy</h3>
       </div>
       <div id="alert" class="alert alert-danger hide" role="alert">

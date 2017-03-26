@@ -36,6 +36,7 @@ func (s *StratumServer) StatsIndex(w http.ResponseWriter, r *http.Request) {
 	stats["upstreams"] = upstreams
 	stats["current"] = convertUpstream(s.rpc())
 	stats["luck"] = s.getLuckStats()
+	stats["blocks"] = s.getBlocksStats()
 
 	if t := s.currentBlockTemplate(); t != nil {
 		stats["height"] = t.height
@@ -115,11 +116,11 @@ func (s *StratumServer) getLuckStats() map[string]interface{} {
 	for k, v := range s.blockStats {
 		if k >= now-int64(s.luckWindow) {
 			blocksCount++
-			variance += v
+			variance += v.variance
 		}
 		if k >= now-int64(s.luckLargeWindow) {
 			totalBlocksCount++
-			totalVariance += v
+			totalVariance += v.variance
 		} else {
 			delete(s.blockStats, k)
 		}
@@ -137,5 +138,28 @@ func (s *StratumServer) getLuckStats() map[string]interface{} {
 	result["totalVariance"] = totalVariance
 	result["totalBlocksCount"] = totalBlocksCount
 	result["largeWindow"] = s.config.LargeLuckWindow
+	return result
+}
+
+func (s *StratumServer) getBlocksStats() []interface{} {
+	now := util.MakeTimestamp()
+	var result []interface{}
+
+	s.blocksMu.Lock()
+	defer s.blocksMu.Unlock()
+
+	for k, v := range s.blockStats {
+		if k >= now-int64(s.luckLargeWindow) {
+			block := map[string]interface{}{
+				"height":    v.height,
+				"hash":      v.hash,
+				"variance":  v.variance,
+				"timestamp": k,
+			}
+			result = append(result, block)
+		} else {
+			delete(s.blockStats, k)
+		}
+	}
 	return result
 }

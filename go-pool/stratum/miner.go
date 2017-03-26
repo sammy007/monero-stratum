@@ -183,7 +183,7 @@ func (m *Miner) processShare(s *StratumServer, cs *Session, job *Job, t *BlockTe
 			roundShares := atomic.SwapInt64(&s.roundShares, 0)
 			ratio := float64(roundShares) / float64(t.difficulty)
 			s.blocksMu.Lock()
-			s.blockStats[now] = ratio
+			s.blockStats[now] = blockEntry{height: t.height, hash: blockFastHash, variance: ratio}
 			s.blocksMu.Unlock()
 			atomic.AddUint64(&m.accepts, 1)
 			atomic.AddUint64(&r.Accepts, 1)
