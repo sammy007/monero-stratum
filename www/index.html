@@ -174,9 +174,11 @@
               </tr>
               {{#each blocks}}
               <tr>
-                <td>{{formatNumber height}}</td>
+                <td><a href="https://moneroblocks.info/block/{{height}}" target="_blank">{{formatNumber height}}<a/></td>
                 <td>{{formatDate timestamp year="numeric" month="numeric" day="numeric" hour="numeric" minute="numeric"}}</td>
-                <td class="hash">{{hash}}</td>
+                <td class="hash">
+                  <a href="https://moneroblocks.info/block/{{height}}" target="_blank">{{hash}}</a>
+                </td>
                 <td>{{formatNumber variance style="percent" minimumFractionDigits=2 maximumFractionDigits=2}}</td>
               </tr>
               {{/each}}
