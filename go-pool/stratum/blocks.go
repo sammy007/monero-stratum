@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"log"
 
-	"../../cnutil"
+	"github.com/sammy007/monero-stratum/cnutil"
 )
 
 type BlockTemplate struct {

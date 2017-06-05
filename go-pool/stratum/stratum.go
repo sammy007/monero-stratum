@@ -12,9 +12,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"../pool"
-	"../rpc"
-	"../util"
+	"github.com/sammy007/monero-stratum/go-pool/pool"
+	"github.com/sammy007/monero-stratumgo-pool/rpc"
+	"github.com/sammy007/monero-stratum/go-pool/util"
 )
 
 type StratumServer struct {
