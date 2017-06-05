@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/sammy007/monero-stratum/go-pool/pool"
-	"github.com/sammy007/monero-stratumgo-pool/rpc"
+	"github.com/sammy007/monero-stratum/go-pool/rpc"
 	"github.com/sammy007/monero-stratum/go-pool/util"
 )
 

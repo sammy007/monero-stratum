@@ -6,8 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"../rpc"
-	"../util"
+	"github.com/sammy007/monero-stratum/go-pool/rpc"
+	"github.com/sammy007/monero-stratum/go-pool/util"
 )
 
 func (s *StratumServer) StatsIndex(w http.ResponseWriter, r *http.Request) {
