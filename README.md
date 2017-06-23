@@ -33,28 +33,28 @@ Compile Monero source (with shared libraries option):
     cmake -DBUILD_SHARED_LIBS=1 .
     make
 
-Install Golang and packages:
+Install Golang and required packages:
 
     sudo apt-get install golang
     export GOPATH=~/go
+    go get github.com/goji/httpauth
     go get github.com/yvasiyarov/gorelic
+    go get github.com/gorilla/mux
 
-Build CGO extensions:
+Clone stratum:
 
-    MONERO_DIR=/opt/src/monero cmake .
-    make
+    git clone https://github.com/sammy007/monero-stratum.git
+    cd monero-stratum
 
 Build stratum:
 
+    MONERO_DIR=/path/to/monero cmake .
+    make
     go build -o pool main.go
 
+`MONERO_DIR=/path/to/monero` is optional, not needed if both `monero` and `monero-stratum` is in the same directory like `/opt/src/`. By default make will search for monero libraries in `../monero`. You can just run `cmake .`.
+
 ### Mac OS X
-
-Install Golang and packages packages:
-
-    brew update && brew install go
-    export GOPATH=~/go
-    go get github.com/yvasiyarov/gorelic
 
 Compile Monero source:
 
@@ -63,13 +63,23 @@ Compile Monero source:
     cmake .
     make
 
-Now clone stratum repo and compile it:
+Install Golang and required packages:
 
-    MONERO_DIR=/opt/src/monero cmake .
-    make
+    brew update && brew install go
+    export GOPATH=~/go
+    go get github.com/goji/httpauth
+    go get github.com/yvasiyarov/gorelic
+    go get github.com/gorilla/mux
+
+Clone stratum:
+
+    git clone https://github.com/sammy007/monero-stratum.git
+    cd monero-stratum
 
 Build stratum:
 
+    MONERO_DIR=/path/to/monero cmake .
+    make
     go build -o pool main.go
 
 ### Running Stratum
