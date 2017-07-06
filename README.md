@@ -18,7 +18,7 @@ High performance CryptoNote mining stratum with Web-interface written in Golang.
 
 Dependencies:
 
-  * go-1.6
+  * go >= 1.6
   * Everything required to build Monero
   * Monero >= **v0.10.3**
 
@@ -28,8 +28,10 @@ Use Ubuntu 16.04 LTS.
 
 Compile Monero source (with shared libraries option):
 
+    apt-get install git cmake build-essential libssl-dev pkg-config libboost-all-dev
     git clone https://github.com/monero-project/monero.git
     cd monero
+    git checkout tags/v0.10.3.1 -b v0.10.3.1
     cmake -DBUILD_SHARED_LIBS=1 .
     make
 
@@ -60,6 +62,7 @@ Compile Monero source:
 
     git clone https://github.com/monero-project/monero.git
     cd monero
+    git checkout tags/v0.10.3.1 -b v0.10.3.1
     cmake .
     make
 
