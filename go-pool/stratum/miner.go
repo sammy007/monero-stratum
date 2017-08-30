@@ -162,10 +162,6 @@ func (m *Miner) processShare(s *StratumServer, cs *Session, job *Job, t *BlockTe
 	}
 
 	hashDiff := util.GetHashDifficulty(hashBytes).Int64() // FIXME: Will return max int64 value if overflows
-	atomic.AddInt64(&s.roundShares, cs.endpoint.config.Difficulty)
-	atomic.AddUint64(&m.validShares, 1)
-	m.storeShare(cs.endpoint.config.Difficulty)
-
 	block := hashDiff >= t.difficulty
 
 	if block {
@@ -198,6 +194,10 @@ func (m *Miner) processShare(s *StratumServer, cs *Session, job *Job, t *BlockTe
 		atomic.AddUint64(&m.invalidShares, 1)
 		return false
 	}
+
+	atomic.AddInt64(&s.roundShares, cs.endpoint.config.Difficulty)
+	atomic.AddUint64(&m.validShares, 1)
+	m.storeShare(cs.endpoint.config.Difficulty)
 	log.Printf("Valid share at difficulty %v/%v", cs.endpoint.config.Difficulty, hashDiff)
 	return true
 }
