@@ -11,11 +11,13 @@ include_directories("${MONERO_DIR}/src")
 include_directories("${MONERO_DIR}/external/easylogging++")
 
 link_directories(
-    ${MONERO_DIR}/src/cryptonote_core
-    ${MONERO_DIR}/src/cryptonote_basic
-    ${MONERO_DIR}/src/crypto
-    ${MONERO_DIR}/src/common
-    ${MONERO_DIR}/src/ringct
+    ${MONERO_DIR}/build/release/src/cryptonote_core
+    ${MONERO_DIR}/build/release/src/cryptonote_basic
+    ${MONERO_DIR}/build/release/src/crypto
+    ${MONERO_DIR}/build/release/src/common
+    ${MONERO_DIR}/build/release/src/ringct
+    ${MONERO_DIR}/build/release/contrib/epee/src
+    ${MONERO_DIR}/build/release/external/easylogging++
 )
 
 # Build library
@@ -24,9 +26,11 @@ add_library(${CXXLIB} SHARED src/cnutil.cpp)
 target_link_libraries(${CXXLIB}
     cryptonote_core
     cryptonote_basic
-    crypto
+    cncrypto
     common
     ringct
+    epee
+    easylogging
 )
 
 target_link_libraries(${CXXLIB}
