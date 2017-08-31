@@ -9,5 +9,7 @@ else()
     message("Monero surce directory is not defined, using default ${MONERO_DIR}")
 endif()
 
+include_directories(/usr/local/include)
+
 add_subdirectory(hashing)
 add_subdirectory(cnutil)
