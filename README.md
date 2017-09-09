@@ -35,10 +35,6 @@ Compile Aeon source (with a special option):
 Install Golang and required packages:
 
     sudo apt-get install golang
-    export GOPATH=~/go
-    go get github.com/goji/httpauth
-    go get github.com/yvasiyarov/gorelic
-    go get github.com/gorilla/mux
 
 Clone stratum:
 
@@ -50,9 +46,17 @@ Build stratum:
 
     AEON_DIR=/path/to/aeon cmake .
     make
-    go build -o pool main.go
 
-`AEON_DIR=/path/to/aeon` is optional, not needed if both `aeon` and `monero-stratum` is in the same directory like `/opt/src/`. By default make will search for aeon libraries in `../aeon`. You can just run `cmake .`.
+`AEON_DIR=/path/to/monero` is optional, not needed if both `aeon` and `monero-stratum` are in the same parent directory.
+
+### Running Stratum
+
+    ./build/bin/monero-stratum config.json
+
+If you need to bind to privileged ports and don't want to run from `root`:
+
+    sudo apt-get install libcap2-bin
+    sudo setcap 'cap_net_bind_service=+ep' /path/to/monero-stratum
 
 ## Configuration
 

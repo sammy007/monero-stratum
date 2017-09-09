@@ -17,4 +17,6 @@ Makefile
 config.json
 testnet.json
 mainnet.json
-pool
+
+/build/_workspace/
+/build/bin/
