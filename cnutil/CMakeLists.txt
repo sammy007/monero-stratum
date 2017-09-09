@@ -17,6 +17,8 @@ link_directories(
     ${MONERO_DIR}/src/common
     ${MONERO_DIR}/src/ringct
     ${MONERO_DIR}/src/blockchain_db
+    ${MONERO_DIR}/external/easylogging++
+    ${MONERO_DIR}/contrib/epee/src
 )
 
 # Build library
@@ -29,6 +31,8 @@ target_link_libraries(${CXXLIB}
     common
     ringct
     blockchain_db
+    easylogging
+    epee
 )
 
 target_link_libraries(${CXXLIB}
