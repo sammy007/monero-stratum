@@ -10,9 +10,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"../../cnutil"
-	"../../hashing"
-	"../util"
+	"github.com/sammy007/monero-stratum/cnutil"
+	"github.com/sammy007/monero-stratum/hashing"
+	"github.com/sammy007/monero-stratum/util"
 )
 
 type Job struct {

@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"time"
 
-	"./go-pool/pool"
-	"./go-pool/stratum"
+	"github.com/sammy007/monero-stratum/pool"
+	"github.com/sammy007/monero-stratum/stratum"
 
 	"github.com/goji/httpauth"
 	"github.com/gorilla/mux"

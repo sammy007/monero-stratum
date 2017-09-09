@@ -38,10 +38,6 @@ Compile Monero source (with shared libraries option):
 Install Golang and required packages:
 
     sudo apt-get install golang
-    export GOPATH=~/go
-    go get github.com/goji/httpauth
-    go get github.com/yvasiyarov/gorelic
-    go get github.com/gorilla/mux
 
 Clone stratum:
 
@@ -52,7 +48,6 @@ Build stratum:
 
     MONERO_DIR=/path/to/monero cmake .
     make
-    go build -o pool main.go
 
 `MONERO_DIR=/path/to/monero` is optional, not needed if both `monero` and `monero-stratum` is in the same directory like `/opt/src/`. By default make will search for monero libraries in `../monero`. You can just run `cmake .`.
 
@@ -69,10 +64,6 @@ Compile Monero source:
 Install Golang and required packages:
 
     brew update && brew install go
-    export GOPATH=~/go
-    go get github.com/goji/httpauth
-    go get github.com/yvasiyarov/gorelic
-    go get github.com/gorilla/mux
 
 Clone stratum:
 
@@ -83,16 +74,15 @@ Build stratum:
 
     MONERO_DIR=/path/to/monero cmake .
     make
-    go build -o pool main.go
 
 ### Running Stratum
 
-    ./pool config.json
+    ./build/bin/monero-stratum config.json
 
 If you need to bind to privileged ports and don't want to run from `root`:
 
     sudo apt-get install libcap2-bin
-    sudo setcap 'cap_net_bind_service=+ep' pool
+    sudo setcap 'cap_net_bind_service=+ep' /path/to/monero-stratum
 
 ## Configuration
 
