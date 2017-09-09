@@ -62,7 +62,7 @@ Compile Monero source:
 
     git clone https://github.com/monero-project/monero.git
     cd monero
-    git checkout tags/v0.10.3.1 -b v0.10.3.1
+    git checkout tags/v0.11.0.0 -b v0.11.0.0
     cmake .
     make
 
@@ -101,7 +101,7 @@ Configuration is self-describing, just copy *config.example.json* to *config.jso
 ```javascript
 {
   // Address for block rewards
-  "address": "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em",
+  "address": "YOUR-ADDRESS-NOT-EXCHANGE",
   // Don't validate address
   "bypassAddressValidation": true,
   // Don't validate shares
