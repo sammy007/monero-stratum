@@ -16,6 +16,7 @@ link_directories(
     ${MONERO_DIR}/src/crypto
     ${MONERO_DIR}/src/common
     ${MONERO_DIR}/src/ringct
+    ${MONERO_DIR}/src/blockchain_db
 )
 
 # Build library
@@ -24,9 +25,10 @@ add_library(${CXXLIB} SHARED src/cnutil.cpp)
 target_link_libraries(${CXXLIB}
     cryptonote_core
     cryptonote_basic
-    crypto
+    cncrypto
     common
     ringct
+    blockchain_db
 )
 
 target_link_libraries(${CXXLIB}

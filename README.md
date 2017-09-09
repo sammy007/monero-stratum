@@ -20,7 +20,7 @@ Dependencies:
 
   * go >= 1.6
   * Everything required to build Monero
-  * Monero >= **v0.10.3**
+  * Monero >= **v0.11.0.0**
 
 ### Linux
 
@@ -31,7 +31,7 @@ Compile Monero source (with shared libraries option):
     apt-get install git cmake build-essential libssl-dev pkg-config libboost-all-dev
     git clone https://github.com/monero-project/monero.git
     cd monero
-    git checkout tags/v0.10.3.1 -b v0.10.3.1
+    git checkout tags/v0.11.0.0 -b v0.11.0.0
     cmake -DBUILD_SHARED_LIBS=1 .
     make
 

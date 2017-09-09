@@ -9,4 +9,4 @@ link_directories(${MONERO_DIR}/src/crypto)
 
 add_library(${LIB} SHARED src/hashing.c)
 
-target_link_libraries(${LIB} crypto)
+target_link_libraries(${LIB} cncrypto)
