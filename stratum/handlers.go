@@ -56,7 +56,7 @@ func (s *StratumServer) handleGetJobRPC(cs *Session, params *GetJobParams) (*Job
 	return cs.getJob(t), nil
 }
 
-func (s *StratumServer) handleSubmitRPC(cs *Session, params *SubmitParams) (*SubmitReply, *ErrorReply) {
+func (s *StratumServer) handleSubmitRPC(cs *Session, params *SubmitParams) (*StatusReply, *ErrorReply) {
 	miner, ok := s.miners.Get(params.Id)
 	if !ok {
 		return nil, &ErrorReply{Code: -1, Message: "Unauthenticated"}
@@ -89,7 +89,7 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, params *SubmitParams) (*Sub
 	if !validShare {
 		return nil, &ErrorReply{Code: -1, Message: "Low difficulty share"}
 	}
-	return &SubmitReply{Status: "OK"}, nil
+	return &StatusReply{Status: "OK"}, nil
 }
 
 func (s *StratumServer) handleUnknownRPC(req *JSONRpcReq) *ErrorReply {
