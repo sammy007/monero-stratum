@@ -267,6 +267,8 @@ func (cs *Session) handleMessage(s *StratumServer, e *Endpoint, req *JSONRpcReq)
 			return cs.sendError(req.Id, errReply, false)
 		}
 		return cs.sendResult(req.Id, &reply)
+	case "keepalived":
+		return cs.sendResult(req.Id, &StatusReply{Status: "KEEPALIVED"})
 	default:
 		errReply := s.handleUnknownRPC(req)
 		return cs.sendError(req.Id, errReply, true)

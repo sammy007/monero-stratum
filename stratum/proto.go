@@ -50,7 +50,7 @@ type JobReplyData struct {
 	Target string `json:"target"`
 }
 
-type SubmitReply struct {
+type StatusReply struct {
 	Status string `json:"status"`
 }
 
