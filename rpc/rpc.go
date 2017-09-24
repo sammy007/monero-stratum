@@ -16,18 +16,18 @@ import (
 
 type RPCClient struct {
 	sync.RWMutex
+	sickRate         int64
+	successRate      int64
+	Accepts          int64
+	Rejects          int64
+	LastSubmissionAt int64
+	FailsCount       int64
 	Url              *url.URL
 	login            string
 	password         string
 	Name             string
 	sick             bool
-	sickRate         int
-	successRate      int
-	Accepts          uint64
-	Rejects          uint64
-	LastSubmissionAt int64
 	client           *http.Client
-	FailsCount       uint64
 }
 
 type GetBlockTemplateReply struct {
@@ -125,7 +125,7 @@ func (r *RPCClient) Sick() bool {
 func (r *RPCClient) markSick() {
 	r.Lock()
 	if !r.sick {
-		atomic.AddUint64(&r.FailsCount, 1)
+		atomic.AddInt64(&r.FailsCount, 1)
 	}
 	r.sickRate++
 	r.successRate = 0

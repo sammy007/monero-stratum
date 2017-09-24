@@ -74,14 +74,14 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, params *SubmitParams) (*Sub
 	nonce := strings.ToLower(params.Nonce)
 	exist := job.submit(nonce)
 	if exist {
-		atomic.AddUint64(&miner.invalidShares, 1)
+		atomic.AddInt64(&miner.invalidShares, 1)
 		return nil, &ErrorReply{Code: -1, Message: "Duplicate share"}
 	}
 
 	t := s.currentBlockTemplate()
 	if job.height != t.height {
 		log.Printf("Stale share for height %d from %s@%s", job.height, miner.id, cs.ip)
-		atomic.AddUint64(&miner.staleShares, 1)
+		atomic.AddInt64(&miner.staleShares, 1)
 		return nil, &ErrorReply{Code: -1, Message: "Block expired"}
 	}
 

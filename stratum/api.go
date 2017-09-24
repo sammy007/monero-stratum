@@ -56,10 +56,10 @@ func convertUpstream(u *rpc.RPCClient) map[string]interface{} {
 		"name":             u.Name,
 		"url":              u.Url.String(),
 		"sick":             u.Sick(),
-		"accepts":          atomic.LoadUint64(&u.Accepts),
-		"rejects":          atomic.LoadUint64(&u.Rejects),
+		"accepts":          atomic.LoadInt64(&u.Accepts),
+		"rejects":          atomic.LoadInt64(&u.Rejects),
 		"lastSubmissionAt": atomic.LoadInt64(&u.LastSubmissionAt),
-		"failsCount":       atomic.LoadUint64(&u.FailsCount),
+		"failsCount":       atomic.LoadInt64(&u.FailsCount),
 	}
 	return upstream
 }
@@ -83,11 +83,11 @@ func (s *StratumServer) collectMinersStats() (float64, float64, int, []interface
 		stats["hashrate"] = hashrate
 		stats["hashrate24h"] = hashrate24h
 		stats["lastBeat"] = lastBeat
-		stats["validShares"] = atomic.LoadUint64(&m.Val.validShares)
-		stats["staleShares"] = atomic.LoadUint64(&m.Val.staleShares)
-		stats["invalidShares"] = atomic.LoadUint64(&m.Val.invalidShares)
-		stats["accepts"] = atomic.LoadUint64(&m.Val.accepts)
-		stats["rejects"] = atomic.LoadUint64(&m.Val.rejects)
+		stats["validShares"] = atomic.LoadInt64(&m.Val.validShares)
+		stats["staleShares"] = atomic.LoadInt64(&m.Val.staleShares)
+		stats["invalidShares"] = atomic.LoadInt64(&m.Val.invalidShares)
+		stats["accepts"] = atomic.LoadInt64(&m.Val.accepts)
+		stats["rejects"] = atomic.LoadInt64(&m.Val.rejects)
 		if !s.config.Frontend.HideIP {
 			stats["ip"] = m.Val.ip
 		}
