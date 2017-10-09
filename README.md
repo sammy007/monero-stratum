@@ -3,6 +3,7 @@
 High performance CryptoNote mining stratum with Web-interface written in Golang.
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/sammy007/monero-stratum)](https://goreportcard.com/report/github.com/sammy007/monero-stratum)
+[![CircleCI](https://circleci.com/gh/sammy007/monero-stratum.svg?style=svg)](https://circleci.com/gh/sammy007/monero-stratum)
 
 **Stratum feature list:**
 
