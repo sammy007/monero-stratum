@@ -2,7 +2,6 @@ package cnutil
 
 import (
 	"encoding/hex"
-	"log"
 	"testing"
 )
 
@@ -22,8 +21,6 @@ func TestConvertBlob(t *testing.T) {
 		}
 	}
 	if !ok {
-		log.Printf("Got: %v %v", output, len(output))
-		log.Printf("Expected: %v %v", expectedResult, len(expectedResult))
 		t.Error("Invalid result")
 	}
 }
