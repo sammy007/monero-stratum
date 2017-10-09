@@ -9,7 +9,7 @@ jobs:
     working_directory: ~/monero-stratum
     branches:
       only:
-        - master
+        - aeon
     steps:
       - run: |
           apt-get -qq update
