@@ -1,0 +1,38 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: ubuntu:16.04
+    parallelism: 3
+    resource_class: large
+    working_directory: ~/monero-stratum
+    branches:
+      only:
+        - master
+    steps:
+      - run: |
+          apt-get -qq update
+          apt-get install -y -qq libboost-all-dev golang curl cmake build-essential libssl-dev git-core
+      - restore_cache:
+          keys:
+            - v1-monero-{{ arch }}-v0.11.0.0.tar.gz
+      - run: |
+          curl -L -o ~/v0.11.0.0.tar.gz https://github.com/monero-project/monero/archive/v0.11.0.0.tar.gz
+          tar xzvf ~/v0.11.0.0.tar.gz -C ~/
+          pushd ~/monero-0.11.0.0 && cmake -DBUILD_SHARED_LIBS=1 . && make && popd
+      - save_cache:
+          key: v1-monero-{{ arch }}-v0.11.0.0.tar.gz
+          paths:
+            - ~/monero-0.11.0.0
+      - checkout
+      - run:
+          name: Compile
+          environment:
+            - MONERO_DIR: "~/monero-0.11.0.0"
+          command: |
+            cmake .
+            make
+      - run:
+          name: Test
+          command: build/env.sh go test -v ./...
