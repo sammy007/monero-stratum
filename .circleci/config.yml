@@ -37,6 +37,4 @@ jobs:
           command: |
             cmake .
             make
-      - run:
-          name: Test
-          command: build/env.sh go test -v ./...
+
