@@ -152,9 +152,11 @@ Configuration is self-describing, just copy *config.example.json* to *config.jso
 
 ### Donations
 
-Donations are welcome.
-
 **XMR**: `4Aag5kkRHmCFHM5aRUtfB2RF3c5NDmk5CVbGdg6fefszEhhFdXhnjiTCr81YxQ9bsi73CSHT3ZN3p82qyakHwZ2GHYqeaUr`
+
+![](https://cdn.pbrd.co/images/GP5tI1D.png)
+
+Highly appreciated.
 
 ### License
 
