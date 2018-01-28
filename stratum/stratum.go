@@ -100,6 +100,9 @@ func NewStratum(cfg *pool.Config) *StratumServer {
 	checkIntv, _ := time.ParseDuration(cfg.UpstreamCheckInterval)
 	checkTimer := time.NewTimer(checkIntv)
 
+	infoIntv, _ := time.ParseDuration(cfg.UpstreamCheckInterval)
+	infoTimer := time.NewTimer(infoIntv)
+
 	// Init block template
 	go stratum.refreshBlockTemplate(false)
 
@@ -119,6 +122,32 @@ func NewStratum(cfg *pool.Config) *StratumServer {
 			case <-checkTimer.C:
 				stratum.checkUpstreams()
 				checkTimer.Reset(checkIntv)
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-infoTimer.C:
+				poll := func(v *rpc.RPCClient) {
+					_, err := v.UpdateInfo()
+					if err != nil {
+						log.Printf("Unable to update info on upstream %s: %v", v.Name, err)
+					}
+				}
+				current := stratum.rpc()
+				poll(current)
+
+				// Async rpc call to not block on rpc timeout, ignoring current
+				go func() {
+					for _, v := range stratum.upstreams {
+						if v != current {
+							poll(v)
+						}
+					}
+				}()
+				infoTimer.Reset(infoIntv)
 			}
 		}
 	}()
