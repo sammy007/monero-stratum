@@ -28,6 +28,7 @@ type RPCClient struct {
 	Name             string
 	sick             bool
 	client           *http.Client
+	info             atomic.Value
 }
 
 type GetBlockTemplateReply struct {
@@ -36,6 +37,14 @@ type GetBlockTemplateReply struct {
 	ReservedOffset int    `json:"reserved_offset"`
 	Height         int64  `json:"height"`
 	PrevHash       string `json:"prev_hash"`
+}
+
+type GetInfoReply struct {
+	IncomingConnections int64  `json:"incoming_connections_count"`
+	OutgoingConnections int64  `json:"outgoing_connections_count"`
+	Status              string `json:"status"`
+	Height              int64  `json:"height"`
+	TxPoolSize          int64  `json:"tx_pool_size"`
 }
 
 type JSONRpcResp struct {
@@ -62,6 +71,19 @@ func (r *RPCClient) GetBlockTemplate(reserveSize int, address string) (*GetBlock
 	params := map[string]interface{}{"reserve_size": reserveSize, "wallet_address": address}
 	rpcResp, err := r.doPost(r.Url.String(), "getblocktemplate", params)
 	var reply *GetBlockTemplateReply
+	if err != nil {
+		return nil, err
+	}
+	if rpcResp.Result != nil {
+		err = json.Unmarshal(*rpcResp.Result, &reply)
+	}
+	return reply, err
+}
+
+func (r *RPCClient) GetInfo() (*GetInfoReply, error) {
+	params := make(map[string]interface{})
+	rpcResp, err := r.doPost(r.Url.String(), "get_info", params)
+	var reply *GetInfoReply
 	if err != nil {
 		return nil, err
 	}
@@ -144,4 +166,17 @@ func (r *RPCClient) markAlive() {
 		r.successRate = 0
 	}
 	r.Unlock()
+}
+
+func (r *RPCClient) UpdateInfo() (*GetInfoReply, error) {
+	info, err := r.GetInfo()
+	if err == nil {
+		r.info.Store(info)
+	}
+	return info, err
+}
+
+func (r *RPCClient) Info() *GetInfoReply {
+	reply, _ := r.info.Load().(*GetInfoReply)
+	return reply
 }

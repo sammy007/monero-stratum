@@ -72,7 +72,7 @@
         </div>
         <div class="col-xs-12">
           <h4>Upstream</h4>
-          <table class="table table-condensed">
+          <table class="table table-condensed table-striped">
             <tr>
             <th>Name</th>
             <th>Url</th>
@@ -91,11 +91,21 @@
               {{else}}
               <td>{{name}}</td>
               {{/if}}
-            <td>{{url}}</td>
-            <td>{{formatNumber accepts}}</td>
-            <td><strong>{{formatNumber rejects}}</strong></td>
-            <td>{{failsCount}}</td>
-            </tr>
+              <td>{{url}}</td>
+              <td>{{formatNumber accepts}}</td>
+              <td><strong>{{formatNumber rejects}}</strong></td>
+              <td>{{failsCount}}</td>
+              {{#if info}}
+              <tr>
+                <td colspan="5" class="small">
+                  <strong>Status:</strong> <span class="label label-default">{{info.status}}</span>
+                  <strong>Height:</strong> <span class="label label-default">{{info.height}}</span>
+                  <strong>Tx Pool Size:</strong> <span class="label label-default">{{info.tx_pool_size}}</span>
+                  <strong>In:</strong> <span class="label label-default">{{info.incoming_connections_count}}</span>
+                  <strong>Out:</strong> <span class="label label-default">{{info.outgoing_connections_count}}</span>
+                </td>
+              </tr>
+              {{/if}}
             {{/each}}
           </table>
         </div>
