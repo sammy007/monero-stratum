@@ -161,8 +161,13 @@ func (m *Miner) processShare(s *StratumServer, cs *Session, job *Job, t *BlockTe
 		return false
 	}
 
-	hashDiff := util.GetHashDifficulty(hashBytes).Int64() // FIXME: Will return max int64 value if overflows
-	block := hashDiff >= t.difficulty
+	hashDiff, ok := util.GetHashDifficulty(hashBytes) // FIXME: Will return max int64 value if overflows
+	if !ok {
+		log.Printf("Bad hash from miner %v@%v", m.id, cs.ip)
+		atomic.AddInt64(&m.invalidShares, 1)
+		return false
+	}
+	block := hashDiff.Cmp(t.difficulty) >= 0
 
 	if block {
 		_, err := r.SubmitBlock(hex.EncodeToString(shareBuff))
@@ -177,7 +182,7 @@ func (m *Miner) processShare(s *StratumServer, cs *Session, job *Job, t *BlockTe
 			blockFastHash := hex.EncodeToString(hashing.FastHash(convertedBlob))
 			now := util.MakeTimestamp()
 			roundShares := atomic.SwapInt64(&s.roundShares, 0)
-			ratio := float64(roundShares) / float64(t.difficulty)
+			ratio := float64(roundShares) / float64(t.diffInt64)
 			s.blocksMu.Lock()
 			s.blockStats[now] = blockEntry{height: t.height, hash: blockFastHash, variance: ratio}
 			s.blocksMu.Unlock()
@@ -189,7 +194,7 @@ func (m *Miner) processShare(s *StratumServer, cs *Session, job *Job, t *BlockTe
 			// Immediately refresh current BT and send new jobs
 			s.refreshBlockTemplate(true)
 		}
-	} else if hashDiff < cs.endpoint.config.Difficulty {
+	} else if hashDiff.Cmp(cs.endpoint.difficulty) < 0 {
 		log.Printf("Rejected low difficulty share of %v from %v@%v", hashDiff, m.id, cs.ip)
 		atomic.AddInt64(&m.invalidShares, 1)
 		return false

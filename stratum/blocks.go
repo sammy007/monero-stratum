@@ -5,12 +5,14 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"log"
+	"math/big"
 
 	"github.com/sammy007/monero-stratum/cnutil"
 )
 
 type BlockTemplate struct {
-	difficulty     int64
+	difficulty     *big.Int
+	diffInt64      int64
 	height         int64
 	reservedOffset int
 	prevHash       string
@@ -49,7 +51,8 @@ func (s *StratumServer) fetchBlockTemplate() bool {
 		log.Printf("New block to mine on %s at height %v, diff: %v, prev_hash: %s", r.Name, reply.Height, reply.Difficulty, reply.PrevHash)
 	}
 	newTemplate := BlockTemplate{
-		difficulty:     reply.Difficulty,
+		diffInt64:      reply.Difficulty,
+		difficulty:     big.NewInt(reply.Difficulty),
 		height:         reply.Height,
 		prevHash:       reply.PrevHash,
 		reservedOffset: reply.ReservedOffset,

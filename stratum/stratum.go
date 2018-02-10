@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/big"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -42,6 +43,7 @@ type blockEntry struct {
 
 type Endpoint struct {
 	config      *pool.Port
+	difficulty  *big.Int
 	instanceId  []byte
 	extraNonce  uint32
 	targetHex   string
@@ -161,6 +163,7 @@ func NewEndpoint(cfg *pool.Port) *Endpoint {
 		log.Fatalf("Can't seed with random bytes: %v", err)
 	}
 	e.targetHex = util.GetTargetHex(e.config.Difficulty)
+	e.difficulty = big.NewInt(e.config.Difficulty)
 	return e
 }
 
