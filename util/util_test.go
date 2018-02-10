@@ -2,7 +2,6 @@ package util
 
 import (
 	"encoding/hex"
-	"math/big"
 	"testing"
 )
 
@@ -23,11 +22,19 @@ func TestGetTargetHex(t *testing.T) {
 func TestGetHashDifficulty(t *testing.T) {
 	hash := "8e3c1865f22801dc3df0a688da80701e2390e7838e65c142604cc00eafe34000"
 	hashBytes, _ := hex.DecodeString(hash)
-	diff := new(big.Int)
-	diff.SetBytes(reverse(hashBytes))
-	shareDiff := GetHashDifficulty(hashBytes)
+	shareDiff, ok := GetHashDifficulty(hashBytes)
 
-	if shareDiff.String() != "1009" {
+	if !ok && shareDiff.String() != "1009" {
 		t.Error("Invalid diff")
+	}
+}
+
+func TestGetHashDifficultyWothBrokenHash(t *testing.T) {
+	hash := ""
+	hashBytes, _ := hex.DecodeString(hash)
+	shareDiff, ok := GetHashDifficulty(hashBytes)
+
+	if ok || shareDiff != nil {
+		t.Error("Must be no result and not ok")
 	}
 }

@@ -31,10 +31,15 @@ func GetTargetHex(diff int64) string {
 	return targetHex
 }
 
-func GetHashDifficulty(hashBytes []byte) *big.Int {
+func GetHashDifficulty(hashBytes []byte) (*big.Int, bool) {
 	diff := new(big.Int)
 	diff.SetBytes(reverse(hashBytes))
-	return diff.Div(Diff1, diff)
+
+	// Check for broken result, empty string or zero hex value
+	if diff.Cmp(new(big.Int)) == 0 {
+		return nil, false
+	}
+	return diff.Div(Diff1, diff), true
 }
 
 func ValidateAddress(addy string, poolAddy string) bool {
