@@ -21,9 +21,9 @@ High performance CryptoNote mining stratum with Web-interface written in Golang.
 
 Dependencies:
 
-  * go >= 1.6
+  * go-1.6
   * Everything required to build Monero
-  * Monero >= **v0.11.0.0**
+  * Monero >= **v0.11.0.0** (sometimes `master` branch required)
 
 ### Linux
 
