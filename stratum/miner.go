@@ -161,7 +161,7 @@ func (m *Miner) processShare(s *StratumServer, cs *Session, job *Job, t *BlockTe
 		return false
 	}
 
-	hashDiff, ok := util.GetHashDifficulty(hashBytes) // FIXME: Will return max int64 value if overflows
+	hashDiff, ok := util.GetHashDifficulty(hashBytes)
 	if !ok {
 		log.Printf("Bad hash from miner %v@%v", m.id, cs.ip)
 		atomic.AddInt64(&m.invalidShares, 1)

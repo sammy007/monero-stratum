@@ -29,7 +29,7 @@ func TestGetHashDifficulty(t *testing.T) {
 	}
 }
 
-func TestGetHashDifficultyWothBrokenHash(t *testing.T) {
+func TestGetHashDifficultyWithBrokenHash(t *testing.T) {
 	hash := ""
 	hashBytes, _ := hex.DecodeString(hash)
 	shareDiff, ok := GetHashDifficulty(hashBytes)
