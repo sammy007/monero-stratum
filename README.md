@@ -154,7 +154,7 @@ You must use `anything.WorkerID` as username in your miner. Either disable addre
 
 ### Donations
 
-**XMR**: `4Aag5kkRHmCFHM5aRUtfB2RF3c5NDmk5CVbGdg6fefszEhhFdXhnjiTCr81YxQ9bsi73CSHT3ZN3p82qyakHwZ2GHYqeaUr`
+**XMR**: `47v4BWeUPFrM9YkYRYk2pkS9CubAPEc7BJjNjg4FvF66Y2oVrTAaBjDZhmFzAXgqCNRvBH2gupQ2gNag2FkP983ZMptvUWG`
 
 ![](https://cdn.pbrd.co/images/GP5tI1D.png)
 
