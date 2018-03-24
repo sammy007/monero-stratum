@@ -49,10 +49,10 @@ Clone stratum:
 
 Build stratum:
 
-    MONERO_DIR=/path/to/monero cmake .
+    AEON_DIR=/path/to/monero cmake .
     make
 
-`MONERO_DIR=/path/to/monero` is optional, not needed if both `monero` and `monero-stratum` is in the same directory like `/opt/src/`. By default make will search for monero libraries in `../monero`. You can just run `cmake .`.
+`AEON_DIR=/path/to/monero` is optional, not needed if both `monero` and `monero-stratum` is in the same directory like `/opt/src/`. By default make will search for monero libraries in `../monero`. You can just run `cmake .`.
 
 ### Mac OS X
 
@@ -75,7 +75,7 @@ Clone stratum:
 
 Build stratum:
 
-    MONERO_DIR=/path/to/monero cmake .
+    AEON_DIR=/path/to/monero cmake .
     make
 
 ### Running Stratum

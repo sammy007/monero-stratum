@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MoneroProxy</title>
+    <title>AeonProxy</title>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <link href="//cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/spacelab/bootstrap.min.css" rel="stylesheet">
     <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -174,10 +174,10 @@
               </tr>
               {{#each blocks}}
               <tr>
-                <td><a href="https://moneroblocks.info/block/{{height}}" target="_blank">{{formatNumber height}}<a/></td>
+                <td><a href="http://chainradar.com/aeon/block/{{height}}" target="_blank">{{formatNumber height}}<a/></td>
                 <td>{{formatDate timestamp year="numeric" month="numeric" day="numeric" hour="numeric" minute="numeric"}}</td>
                 <td class="hash">
-                  <a href="https://moneroblocks.info/block/{{hash}}" target="_blank">{{hash}}</a>
+                  <a href="http://chainradar.com/aeon/block/{{hash}}" target="_blank">{{hash}}</a>
                 </td>
                 <td>{{formatNumber variance style="percent" minimumFractionDigits=2 maximumFractionDigits=2}}</td>
               </tr>
@@ -196,7 +196,7 @@
             <li role="presentation"><a href="#blocks" id="blocksTab">Blocks</a></li>
           </ul>
         </nav>
-        <h3 class="text-muted">MoneroProxy</h3>
+        <h3 class="text-muted">AeonProxy</h3>
       </div>
       <div id="alert" class="alert alert-danger hide" role="alert">
         <strong>An error occured while polling proxy state.</strong>
@@ -209,6 +209,7 @@
       <div class="container">
         <p>
           By <a href="https://github.com/sammy007" target="_blank">sammy007</a>.<br/>
+          <span><strong>AEON</strong>: WmsydZEeWrSCWCftoSNZF42EzCbkYhSgSZmGVC5QdJB78DFJEQ1XZTcWchV1dVnpHd2m7TjoGHwb5627nc2yVqEe1JSj4Q9q4</span><br/>
           <span><strong>XMR</strong>: 47v4BWeUPFrM9YkYRYk2pkS9CubAPEc7BJjNjg4FvF66Y2oVrTAaBjDZhmFzAXgqCNRvBH2gupQ2gNag2FkP983ZMptvUWG</span><br/>
         </p>
       </div>
