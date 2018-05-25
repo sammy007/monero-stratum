@@ -29,11 +29,16 @@ Dependencies:
 
 Use Ubuntu 16.04 LTS.
 
-Compile Aeon source (with a special option):
+Compile Aeon source (with shared libraries option):
 
+    apt-get install git-core libboost-all-dev golang curl cmake build-essential libssl-dev git-core libunbound-dev libzmq3-dev
     git clone https://github.com/aeonix/aeon.git
     cd aeon
-    CXXFLAGS="-fPIC" CFLAGS="-fPIC" make
+    git checkout tags/v0.12.0.0 -b v0.12.0.0
+    git submodule init
+    git submodule update
+    cmake -DBUILD_SHARED_LIBS=1 .
+    make
 
 Install Golang and required packages:
 
@@ -50,7 +55,7 @@ Build stratum:
     AEON_DIR=/path/to/aeon cmake .
     make
 
-`AEON_DIR=/path/to/monero` is optional, not needed if both `aeon` and `monero-stratum` are in the same parent directory.
+`AEON_DIR=/path/to/aeon` is optional, not needed if both `aeon` and `monero-stratum` are in the same parent directory.
 
 ### Running Stratum
 
@@ -129,8 +134,12 @@ Configuration is self-describing, just copy *config.example.json* to *config.jso
 
 Donations are welcome.
 
-**XMR**: `4Aag5kkRHmCFHM5aRUtfB2RF3c5NDmk5CVbGdg6fefszEhhFdXhnjiTCr81YxQ9bsi73CSHT3ZN3p82qyakHwZ2GHYqeaUr`
+**XMR**: `47v4BWeUPFrM9YkYRYk2pkS9CubAPEc7BJjNjg4FvF66Y2oVrTAaBjDZhmFzAXgqCNRvBH2gupQ2gNag2FkP983ZMptvUWG`
 **AEON**: `WmsydZEeWrSCWCftoSNZF42EzCbkYhSgSZmGVC5QdJB78DFJEQ1XZTcWchV1dVnpHd2m7TjoGHwb5627nc2yVqEe1JSj4Q9q4`
+
+![](https://cdn.pbrd.co/images/GP5tI1D.png)
+
+Highly appreciated.
 
 ### License
 
