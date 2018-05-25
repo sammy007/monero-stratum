@@ -13,27 +13,23 @@ jobs:
     steps:
       - run: |
           apt-get -qq update
-          apt-get install -y -qq libboost-all-dev golang curl cmake build-essential libssl-dev git-core
+          apt-get install -y -qq libboost-all-dev golang curl cmake build-essential libssl-dev git-core libzmq3-dev
       - restore_cache:
           keys:
-            - v1-aeon-{{ arch }}-v0.9.14.0.tar.gz
+            - v1-aeon-{{ arch }}-v0.12.0.0.tar.gz
       - run:
-          environment:
-            - CXXFLAGS: "-fPIC"
-            - CFLAGS: "-fPIC"
           command: |
-            curl -L -o ~/v0.9.14.0.tar.gz https://github.com/aeonix/aeon/archive/v0.9.14.0.tar.gz
-            tar xzvf ~/v0.9.14.0.tar.gz -C ~/
-            pushd ~/aeon-0.9.14.0 && make && popd
+            git clone --recursive --branch v0.12.0.0 https://github.com/aeonix/aeon.git ~/aeon-0.12.0.0
+            pushd ~/aeon-0.12.0.0 && cmake -DBUILD_SHARED_LIBS=1 . && make && popd
       - save_cache:
-          key: v1-aeon-{{ arch }}-v0.9.14.0.tar.gz
+          key: v1-aeon-{{ arch }}-v0.12.0.0.tar.gz
           paths:
-            - ~/aeon-0.9.14.0
+            - ~/aeon-0.12.0.0
       - checkout
       - run:
           name: Compile
           environment:
-            - AEON_DIR: "~/aeon-0.9.14.0"
+            - AEON_DIR: "~/aeon-0.12.0.0"
           command: |
             cmake .
             make
