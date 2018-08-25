@@ -2,51 +2,19 @@ package stratum
 
 import (
 	"encoding/json"
-	"net/http"
-	"sync/atomic"
-	"time"
-
+	"fmt"
 	"github.com/sammy007/monero-stratum/rpc"
 	"github.com/sammy007/monero-stratum/util"
+	"log"
+	"net/http"
+	"sync/atomic"
 )
 
 func (s *StratumServer) StatsIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	hashrate, hashrate24h, totalOnline, miners := s.collectMinersStats()
-	stats := map[string]interface{}{
-		"miners":      miners,
-		"hashrate":    hashrate,
-		"hashrate24h": hashrate24h,
-		"totalMiners": len(miners),
-		"totalOnline": totalOnline,
-		"timedOut":    len(miners) - totalOnline,
-		"now":         util.MakeTimestamp(),
-	}
-
-	var upstreams []interface{}
-	current := atomic.LoadInt32(&s.upstream)
-
-	for i, u := range s.upstreams {
-		upstream := convertUpstream(u)
-		upstream["current"] = current == int32(i)
-		upstreams = append(upstreams, upstream)
-	}
-	stats["upstreams"] = upstreams
-	stats["current"] = convertUpstream(s.rpc())
-	stats["luck"] = s.getLuckStats()
-	stats["blocks"] = s.getBlocksStats()
-
-	if t := s.currentBlockTemplate(); t != nil {
-		stats["height"] = t.height
-		stats["diff"] = t.diffInt64
-		roundShares := atomic.LoadInt64(&s.roundShares)
-		stats["variance"] = float64(roundShares) / float64(t.diffInt64)
-		stats["prevHash"] = t.prevHash[0:8]
-		stats["template"] = true
-	}
-	json.NewEncoder(w).Encode(stats)
+	json.NewEncoder(w).Encode(collectMinerStatsMap(s))
 }
 
 func convertUpstream(u *rpc.RPCClient) map[string]interface{} {
@@ -63,46 +31,6 @@ func convertUpstream(u *rpc.RPCClient) map[string]interface{} {
 	return upstream
 }
 
-func (s *StratumServer) collectMinersStats() (float64, float64, int, []interface{}) {
-	now := util.MakeTimestamp()
-	var result []interface{}
-	totalhashrate := float64(0)
-	totalhashrate24h := float64(0)
-	totalOnline := 0
-	window24h := 24 * time.Hour
-
-	for m := range s.miners.Iter() {
-		stats := make(map[string]interface{})
-		lastBeat := m.Val.getLastBeat()
-		hashrate := m.Val.hashrate(s.estimationWindow)
-		hashrate24h := m.Val.hashrate(window24h)
-		totalhashrate += hashrate
-		totalhashrate24h += hashrate24h
-		stats["name"] = m.Key
-		stats["hashrate"] = hashrate
-		stats["hashrate24h"] = hashrate24h
-		stats["lastBeat"] = lastBeat
-		stats["validShares"] = atomic.LoadInt64(&m.Val.validShares)
-		stats["staleShares"] = atomic.LoadInt64(&m.Val.staleShares)
-		stats["invalidShares"] = atomic.LoadInt64(&m.Val.invalidShares)
-		stats["accepts"] = atomic.LoadInt64(&m.Val.accepts)
-		stats["rejects"] = atomic.LoadInt64(&m.Val.rejects)
-		if !s.config.Frontend.HideIP {
-			stats["ip"] = m.Val.ip
-		}
-
-		if now-lastBeat > (int64(s.timeout/2) / 1000000) {
-			stats["warning"] = true
-		}
-		if now-lastBeat > (int64(s.timeout) / 1000000) {
-			stats["timeout"] = true
-		} else {
-			totalOnline++
-		}
-		result = append(result, stats)
-	}
-	return totalhashrate, totalhashrate24h, totalOnline, result
-}
 
 func (s *StratumServer) getLuckStats() map[string]interface{} {
 	now := util.MakeTimestamp()
@@ -163,4 +91,41 @@ func (s *StratumServer) getBlocksStats() []interface{} {
 		}
 	}
 	return result
+}
+
+func setBlockStats(s *StratumServer, importBlocksBlob interface{})  {
+	s.blocksMu.Lock()
+	defer s.blocksMu.Unlock()
+
+	if importBlocks, ok := importBlocksBlob.([]interface{}) ; ok {
+		// blocks are stored in JSON as array of hash but in the our struct as timestamp -> blockEntry
+		for _, element := range importBlocks {
+			if importBlock, ok := element.(map[string]interface{}) ; ok{
+				block := blockEntry{}
+				if d, ok := importBlock["height"].(json.Number); ok {
+					block.height, _ = d.Int64()
+				}
+				if d, ok := importBlock["hash"].(string); ok {
+					block.hash = d
+				}
+				if d, ok := importBlock["variance"].(json.Number); ok {
+					block.variance, _ = d.Float64()
+				}
+				if d, ok := importBlock["timestamp"].(json.Number); ok {
+					timestamp, _ := d.Int64()
+					s.blockStats[timestamp] = block
+					log.Printf("Imported block %d OK!", block.height)
+				} else {
+					log.Printf("Skipped importing a block... timestamp dectected as %T but should be int64! got value: '%s'", importBlock["timestamp"], importBlock["timestamp"])
+				}
+			}
+		}
+	} else {
+		log.Println("Unable to import any blocks... *ALL* of the JSON is invalid!", importBlocksBlob)
+		log.Println(fmt.Sprintf("detected type: %T", importBlocksBlob))
+
+		//[]interface {}
+
+	}
+
 }

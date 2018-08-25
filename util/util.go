@@ -2,7 +2,11 @@ package util
 
 import (
 	"encoding/hex"
+	"encoding/json"
+	"io/ioutil"
+	"log"
 	"math/big"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -60,4 +64,42 @@ func reverse(src []byte) []byte {
 		dst[len(src)-i] = src[i-1]
 	}
 	return dst
+}
+
+// load any JSON file into a struct and return it
+func LoadJson(filename string) interface{} {
+	var s interface{}
+	data, err := ioutil.ReadFile(filename)
+	if err == nil {
+		// yuk.. what am I missing here...?
+		decoder := json.NewDecoder(strings.NewReader(string(data)))
+
+		// we have to set UseNumber to avoid getting float64s for all our timestamps, etc
+		decoder.UseNumber()
+		err := decoder.Decode(&s)
+
+		if err != nil {
+			log.Println("parsing stats file", err.Error())
+		}
+
+	} else {
+		log.Println("opening json file", err.Error())
+	}
+
+	return s
+
+}
+
+// save any Struct to a JSON file
+func SaveJson(filename string, s interface{}) {
+	jsonData, err := json.Marshal(s)
+	if err == nil {
+		err = ioutil.WriteFile(filename, []byte(jsonData), 0644)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		log.Println(err)
+	}
+
 }
