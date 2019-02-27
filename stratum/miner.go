@@ -16,17 +16,14 @@ import (
 )
 
 type Job struct {
+	height      int64
 	sync.RWMutex
 	id          string
 	extraNonce  uint32
-	height      int64
 	submissions map[string]struct{}
 }
 
 type Miner struct {
-	sync.RWMutex
-	id            string
-	ip            string
 	lastBeat      int64
 	startedAt     int64
 	validShares   int64
@@ -35,6 +32,9 @@ type Miner struct {
 	accepts       int64
 	rejects       int64
 	shares        map[int64]int64
+	sync.RWMutex
+	id            string
+	ip            string
 }
 
 func (job *Job) submit(nonce string) bool {

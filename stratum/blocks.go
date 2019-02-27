@@ -11,9 +11,9 @@ import (
 )
 
 type BlockTemplate struct {
-	difficulty     *big.Int
 	diffInt64      int64
 	height         int64
+	difficulty     *big.Int
 	reservedOffset int
 	prevHash       string
 	buffer         []byte
