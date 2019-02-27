@@ -19,6 +19,10 @@ import (
 )
 
 type StratumServer struct {
+	luckWindow       int64
+	luckLargeWindow  int64
+	roundShares      int64
+	blockStats       map[int64]blockEntry
 	config           *pool.Config
 	miners           MinersMap
 	blockTemplate    atomic.Value
@@ -27,37 +31,33 @@ type StratumServer struct {
 	timeout          time.Duration
 	estimationWindow time.Duration
 	blocksMu         sync.RWMutex
-	blockStats       map[int64]blockEntry
-	luckWindow       int64
-	luckLargeWindow  int64
-	roundShares      int64
 	sessionsMu       sync.RWMutex
 	sessions         map[*Session]struct{}
 }
 
 type blockEntry struct {
 	height   int64
-	hash     string
 	variance float64
+	hash     string
 }
 
 type Endpoint struct {
+	jobSequence uint64
 	config      *pool.Port
 	difficulty  *big.Int
 	instanceId  []byte
 	extraNonce  uint32
 	targetHex   string
-	jobSequence uint64
 }
 
 type Session struct {
+	lastBlockHeight int64
 	sync.Mutex
 	conn            *net.TCPConn
 	enc             *json.Encoder
 	ip              string
 	endpoint        *Endpoint
 	validJobs       []*Job
-	lastBlockHeight int64
 }
 
 const (

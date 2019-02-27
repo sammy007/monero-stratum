@@ -25,9 +25,9 @@ type Stratum struct {
 }
 
 type Port struct {
+	Difficulty int64  `json:"diff"`
 	Host       string `json:"host"`
 	Port       int    `json:"port"`
-	Difficulty int64  `json:"diff"`
 	MaxConn    int    `json:"maxConn"`
 }
 

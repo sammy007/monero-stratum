@@ -32,19 +32,19 @@ type RPCClient struct {
 }
 
 type GetBlockTemplateReply struct {
-	Blob           string `json:"blocktemplate_blob"`
 	Difficulty     int64  `json:"difficulty"`
-	ReservedOffset int    `json:"reserved_offset"`
 	Height         int64  `json:"height"`
+	Blob           string `json:"blocktemplate_blob"`
+	ReservedOffset int    `json:"reserved_offset"`
 	PrevHash       string `json:"prev_hash"`
 }
 
 type GetInfoReply struct {
 	IncomingConnections int64  `json:"incoming_connections_count"`
 	OutgoingConnections int64  `json:"outgoing_connections_count"`
-	Status              string `json:"status"`
 	Height              int64  `json:"height"`
 	TxPoolSize          int64  `json:"tx_pool_size"`
+	Status              string `json:"status"`
 }
 
 type JSONRpcResp struct {
