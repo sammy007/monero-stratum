@@ -152,7 +152,7 @@ func (m *Miner) processShare(s *StratumServer, cs *Session, job *Job, t *BlockTe
 		hashBytes, _ = hex.DecodeString(result)
 	} else {
 		convertedBlob = cnutil.ConvertBlob(shareBuff)
-		hashBytes = hashing.Hash(convertedBlob, false)
+		hashBytes = hashing.Hash(convertedBlob, false, t.height)
 	}
 
 	if !s.config.BypassShareValidation && hex.EncodeToString(hashBytes) != result {

@@ -18,19 +18,19 @@ jobs:
           echo 'export PATH=~/go/bin:$PATH' >> ~/.bashrc
       - restore_cache:
           keys:
-            - v1-monero-{{ arch }}-v0.13.0.2.tar.gz
+            - v1-monero-{{ arch }}-v0.14.0.0.tar.gz
       - run: |
-          git clone --recursive --branch v0.13.0.2 https://github.com/monero-project/monero.git ~/monero-0.13.0.2
-          pushd ~/monero-0.13.0.2 && cmake -DBUILD_SHARED_LIBS=1 . && make && popd
+          git clone --recursive --branch v0.14.0.0 --depth 1 https://github.com/monero-project/monero.git ~/monero-0.14.0.0
+          pushd ~/monero-0.14.0.0 && cmake -DBUILD_SHARED_LIBS=1 . && make && popd
       - save_cache:
-          key: v1-monero-{{ arch }}-v0.13.0.2.tar.gz
+          key: v1-monero-{{ arch }}-v0.14.0.0.tar.gz
           paths:
-            - ~/monero-0.13.0.2
+            - ~/monero-0.14.0.0
       - checkout
       - run:
           name: Compile
           environment:
-            - MONERO_DIR: "~/monero-0.13.0.2"
+            - MONERO_DIR: "~/monero-0.14.0.0"
           command: |
             cmake .
             make
