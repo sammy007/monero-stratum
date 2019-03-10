@@ -41,6 +41,7 @@ type SubmitParams struct {
 type JobReply struct {
 	Id     string        `json:"id"`
 	Job    *JobReplyData `json:"job"`
+	Height int64	     `json:"height"`
 	Status string        `json:"status"`
 }
 
