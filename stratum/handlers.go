@@ -10,11 +10,13 @@ import (
 )
 
 var noncePattern *regexp.Regexp
+var noncePattern64 *regexp.Regexp
 
 const defaultWorkerId = "0"
 
 func init() {
 	noncePattern, _ = regexp.Compile("^[0-9a-f]{8}$")
+	noncePattern64, _ = regexp.Compile("^[0-9a-f]{16}$")
 }
 
 func (s *StratumServer) handleLoginRPC(cs *Session, params *LoginParams) (*JobReply, *ErrorReply) {
@@ -68,7 +70,7 @@ func (s *StratumServer) handleSubmitRPC(cs *Session, params *SubmitParams) (*Sta
 		return nil, &ErrorReply{Code: -1, Message: "Invalid job id"}
 	}
 
-	if !noncePattern.MatchString(params.Nonce) {
+	if !noncePattern.MatchString(params.Nonce) && !noncePattern64.MatchString(params.Nonce) {
 		return nil, &ErrorReply{Code: -1, Message: "Malformed nonce"}
 	}
 	nonce := strings.ToLower(params.Nonce)
