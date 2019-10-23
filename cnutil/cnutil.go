@@ -8,7 +8,7 @@ import "C"
 import "unsafe"
 
 func ConvertBlob(blob []byte) []byte {
-	output := make([]byte, 76)
+	output := make([]byte, 80)
 	out := (*C.char)(unsafe.Pointer(&output[0]))
 
 	input := (*C.char)(unsafe.Pointer(&blob[0]))

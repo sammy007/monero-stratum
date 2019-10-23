@@ -7,13 +7,13 @@ import (
 
 func TestGetTargetHex(t *testing.T) {
 	targetHex := GetTargetHex(500)
-	expectedHex := "6e128300"
+	expectedHex := "df4f8d976e128300";
 	if targetHex != expectedHex {
 		t.Error("Invalid targetHex")
 	}
 
 	targetHex = GetTargetHex(15000)
-	expectedHex = "7b5e0400"
+	expectedHex = "87602f277b5e0400";
 	if targetHex != expectedHex {
 		t.Error("Invalid targetHex")
 	}
