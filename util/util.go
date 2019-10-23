@@ -26,7 +26,7 @@ func GetTargetHex(diff int64) string {
 
 	diffBuff := new(big.Int).Div(Diff1, big.NewInt(diff)).Bytes()
 	copy(padded[32-len(diffBuff):], diffBuff)
-	buff := padded[0:4]
+	buff := padded[0:8]
 	targetHex := hex.EncodeToString(reverse(buff))
 	return targetHex
 }
