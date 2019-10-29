@@ -23,7 +23,7 @@ Dependencies:
 
   * go-1.6
   * Everything required to build Aeon
-  * Aeon >= **v0.9.12.0**
+  * Aeon >= **v0.13.0.0-aeon**
 
 ### Linux
 
@@ -32,9 +32,9 @@ Use Ubuntu 16.04 LTS.
 Compile Aeon source (with shared libraries option):
 
     apt-get install git-core libboost-all-dev golang curl cmake build-essential libssl-dev git-core libunbound-dev libzmq3-dev
-    git clone https://github.com/aeonix/aeon.git
+    git clone --recursive https://github.com/aeonix/aeon.git
     cd aeon
-    git checkout tags/v0.12.0.0 -b v0.12.0.0
+    git checkout tags/v0.13.0.0-aeon -b v0.13.0.0-aeon
     git submodule init
     git submodule update
     cmake -DBUILD_SHARED_LIBS=1 .
