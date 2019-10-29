@@ -15,7 +15,7 @@ High performance CryptoNote mining stratum with Web-interface written in Golang.
 * Concurrent shares processing
 * Beautiful Web-interface
 
-![](https://cdn.pbrd.co/images/jRU3qJj83.png)
+![](screenshot.png)
 
 ## Installation
 
