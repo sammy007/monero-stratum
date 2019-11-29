@@ -27,7 +27,7 @@ func NewMinersMap() MinersMap {
 	return m
 }
 
-// Returns shard under given key
+// GetShard returns shard under given key
 func (m MinersMap) GetShard(key string) *MinersMapShared {
 	hasher := fnv.New32()
 	hasher.Write([]byte(key))
@@ -43,7 +43,7 @@ func (m *MinersMap) Set(key string, value *Miner) {
 	shard.items[key] = value
 }
 
-// Retrieves an element from map under given key.
+// Get retrieves an element from map under given key.
 func (m MinersMap) Get(key string) (*Miner, bool) {
 	// Get shard
 	shard := m.GetShard(key)
@@ -55,7 +55,7 @@ func (m MinersMap) Get(key string) (*Miner, bool) {
 	return val, ok
 }
 
-// Returns the number of elements within the map.
+// Count returns the number of elements within the map.
 func (m MinersMap) Count() int {
 	count := 0
 	for i := 0; i < SHARD_COUNT; i++ {
@@ -79,7 +79,7 @@ func (m *MinersMap) Has(key string) bool {
 	return ok
 }
 
-// Removes an element from the map.
+// Remove removes an element from the map.
 func (m *MinersMap) Remove(key string) {
 	// Try to get shard.
 	shard := m.GetShard(key)
@@ -88,7 +88,7 @@ func (m *MinersMap) Remove(key string) {
 	delete(shard.items, key)
 }
 
-// Checks if map is empty.
+// IsEmpty checks if map is empty.
 func (m *MinersMap) IsEmpty() bool {
 	return m.Count() == 0
 }
@@ -99,7 +99,7 @@ type Tuple struct {
 	Val *Miner
 }
 
-// Returns an iterator which could be used in a for range loop.
+// Iter returns an iterator which could be used in a for range loop.
 func (m MinersMap) Iter() <-chan Tuple {
 	ch := make(chan Tuple)
 	go func() {
@@ -117,7 +117,7 @@ func (m MinersMap) Iter() <-chan Tuple {
 	return ch
 }
 
-// Returns a buffered iterator which could be used in a for range loop.
+// IterBuffered returns a buffered iterator which could be used in a for range loop.
 func (m MinersMap) IterBuffered() <-chan Tuple {
 	ch := make(chan Tuple, m.Count())
 	go func() {
