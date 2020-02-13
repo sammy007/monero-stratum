@@ -17,6 +17,8 @@ type Config struct {
 	NewrelicKey             string     `json:"newrelicKey"`
 	NewrelicVerbose         bool       `json:"newrelicVerbose"`
 	NewrelicEnabled         bool       `json:"newrelicEnabled"`
+	StatsDir         		string     `json:"statsDir"`
+	StatsInterval			int		   `json:"statsInterval"`
 }
 
 type Stratum struct {

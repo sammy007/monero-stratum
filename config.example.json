@@ -58,5 +58,6 @@
 	"newrelicEnabled": false,
 	"newrelicName": "MyStratum",
 	"newrelicKey": "SECRET_KEY",
-	"newrelicVerbose": false
+	"newrelicVerbose": false,
+	"statsDir": "stats"
 }

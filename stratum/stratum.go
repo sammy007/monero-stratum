@@ -5,17 +5,17 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"github.com/sammy007/monero-stratum/pool"
+	"github.com/sammy007/monero-stratum/rpc"
+	"github.com/sammy007/monero-stratum/util"
 	"io"
 	"log"
 	"math/big"
 	"net"
+	"path"
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/sammy007/monero-stratum/pool"
-	"github.com/sammy007/monero-stratum/rpc"
-	"github.com/sammy007/monero-stratum/util"
 )
 
 type StratumServer struct {
@@ -64,8 +64,33 @@ const (
 	MaxReqSize = 10 * 1024
 )
 
+const (
+	DefaultStatsInterval = 5
+)
+
 func NewStratum(cfg *pool.Config) *StratumServer {
 	stratum := &StratumServer{config: cfg, blockStats: make(map[int64]blockEntry)}
+
+	// flush stats periodically if configured
+	if cfg.StatsDir != "" {
+		go func() {
+			statsJson := path.Join(cfg.StatsDir, "stats.json")
+			importMinerStatsMap(stratum, statsJson)
+
+			// ...work out how often we should save statistics
+			statsInterval := cfg.StatsInterval
+			if statsInterval == 0 {
+				log.Printf("statsInterval not found in config file, defaulting to %d seconds", DefaultStatsInterval)
+				statsInterval = 5
+			}
+
+			// ...and start a periodic flush process
+			for {
+				time.Sleep(time.Duration(statsInterval) * time.Second)
+				util.SaveJson(statsJson, collectMinerStatsMap(stratum))
+			}
+		}()
+	}
 
 	stratum.upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
 	for i, v := range cfg.Upstream {
@@ -397,4 +422,106 @@ func (s *StratumServer) checkUpstreams() {
 func (s *StratumServer) rpc() *rpc.RPCClient {
 	i := atomic.LoadInt32(&s.upstream)
 	return s.upstreams[i]
+}
+
+func (s *StratumServer) collectMinersStats() (float64, float64, int, []interface{}) {
+	now := util.MakeTimestamp()
+	var result []interface{}
+	totalhashrate := float64(0)
+	totalhashrate24h := float64(0)
+	totalOnline := 0
+	window24h := 24 * time.Hour
+
+	for m := range s.miners.Iter() {
+		stats := make(map[string]interface{})
+		lastBeat := m.Val.getLastBeat()
+		hashrate := m.Val.hashrate(s.estimationWindow)
+		hashrate24h := m.Val.hashrate(window24h)
+		totalhashrate += hashrate
+		totalhashrate24h += hashrate24h
+		stats["name"] = m.Key
+		stats["hashrate"] = hashrate
+		stats["hashrate24h"] = hashrate24h
+		stats["lastBeat"] = lastBeat
+		stats["validShares"] = atomic.LoadInt64(&m.Val.validShares)
+		stats["staleShares"] = atomic.LoadInt64(&m.Val.staleShares)
+		stats["invalidShares"] = atomic.LoadInt64(&m.Val.invalidShares)
+		stats["accepts"] = atomic.LoadInt64(&m.Val.accepts)
+		stats["rejects"] = atomic.LoadInt64(&m.Val.rejects)
+		if !s.config.Frontend.HideIP {
+			stats["ip"] = m.Val.ip
+		}
+
+		if now-lastBeat > (int64(s.timeout/2) / 1000000) {
+			stats["warning"] = true
+		}
+		if now-lastBeat > (int64(s.timeout) / 1000000) {
+			stats["timeout"] = true
+		} else {
+			totalOnline++
+		}
+		result = append(result, stats)
+	}
+	return totalhashrate, totalhashrate24h, totalOnline, result
+}
+
+func collectMinerStatsMap(s *StratumServer) map[string]interface{} {
+	hashrate, hashrate24h, totalOnline, miners := s.collectMinersStats()
+	stats := map[string]interface{}{
+		"miners":      miners,
+		"hashrate":    hashrate,
+		"hashrate24h": hashrate24h,
+		"totalMiners": len(miners),
+		"totalOnline": totalOnline,
+		"timedOut":    len(miners) - totalOnline,
+		"now":         util.MakeTimestamp(),
+	}
+
+	var upstreams []interface{}
+	current := atomic.LoadInt32(&s.upstream)
+
+	for i, u := range s.upstreams {
+		upstream := convertUpstream(u)
+		upstream["current"] = current == int32(i)
+		upstreams = append(upstreams, upstream)
+	}
+	stats["upstreams"] = upstreams
+	stats["current"] = convertUpstream(s.rpc())
+	stats["luck"] = s.getLuckStats()
+	stats["blocks"] = s.getBlocksStats()
+
+	if t := s.currentBlockTemplate(); t != nil {
+		stats["height"] = t.height
+		stats["diff"] = t.diffInt64
+		roundShares := atomic.LoadInt64(&s.roundShares)
+		stats["variance"] = float64(roundShares) / float64(t.diffInt64)
+		stats["prevHash"] = t.prevHash[0:8]
+		stats["template"] = true
+
+		// the overall effort towards the current block "variance" is an OUTPUT of the calculation of
+		// roundShares/networkDifficulty - therefore it makes no sense to save it in JSON as its a calculated output
+		// we must persist the value of roundShares instead, as an extra field
+		stats["roundShares"] = roundShares
+	}
+
+	return stats
+}
+
+
+func importMinerStatsMap(stratumServer *StratumServer, statsJson string)  {
+	log.Println("importing previous statistics...")
+	if parsed := util.LoadJson(statsJson) ; parsed != nil {
+		if stats, ok := parsed.(map[string]interface{}); ok {
+			// mined blocks
+			setBlockStats(stratumServer, stats["blocks"])
+
+			// progress
+			if v, ok := stats["roundShares"].(json.Number); ok {
+				stratumServer.roundShares, _ = v.Int64()
+			}
+
+		} else {
+			log.Println("Parsed JSON from saved stats but its unreadable", parsed)
+		}
+	}
 }
